@@ -1,0 +1,9 @@
+license:
+  name: lgpl
+  version: 3
+program:
+  name: Evaluation-Lib
+  description: Miscellaneous functions for performing an evaluation.
+  authors: Sebastian Krieter
+  url: https://github.com/skrieter/evaluation
+  year: 2021

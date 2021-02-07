@@ -1,0 +1,8 @@
+results
+output
+models/
+target/
+.settings/
+.project
+.classpath
+
