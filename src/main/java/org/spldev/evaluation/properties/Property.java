@@ -24,16 +24,16 @@ package org.spldev.evaluation.properties;
 
 import java.util.function.Function;
 
-public class SingleProperty<T> extends AProperty<T> {
+public class Property<T> extends AProperty<T> {
 
 	protected final Function<String, T> converter;
 
-	public SingleProperty(String name, Function<String, T> converter) {
+	public Property(String name, Function<String, T> converter) {
 		super(name, null);
 		this.converter = converter;
 	}
 
-	public SingleProperty(String name, Function<String, T> converter, T defaultValue) {
+	public Property(String name, Function<String, T> converter, T defaultValue) {
 		super(name, defaultValue);
 		this.converter = converter;
 	}

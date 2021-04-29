@@ -38,6 +38,7 @@ public class ProcessRunner {
 
 	public <R> void run(Algorithm<R> algorithm, Result<R> result) {
 		boolean terminatedInTime = false;
+		boolean noError = false;
 		long startTime = 0, endTime = 0;
 		try {
 			System.gc();
@@ -47,7 +48,6 @@ public class ProcessRunner {
 
 			final List<String> command = algorithm.getCommandElements();
 			if (!command.isEmpty()) {
-
 				final ProcessBuilder processBuilder = new ProcessBuilder(command);
 				Process process = null;
 
@@ -69,18 +69,21 @@ public class ProcessRunner {
 
 					terminatedInTime = process.waitFor(timeout, TimeUnit.MILLISECONDS);
 					endTime = System.nanoTime();
+					noError = errStreamCollector.getErrList().isEmpty();
 					result.setTerminatedInTime(terminatedInTime);
-					result.setNoError(errStreamCollector.getErrList().isEmpty());
+					result.setNoError(noError);
 					result.setTime((endTime - startTime) / 1_000_000L);
 				} finally {
 					if (process != null) {
 						process.destroyForcibly();
 					}
+					Logger.logInfo("In time: " + terminatedInTime + ", no error: " + noError);
 				}
 			} else {
 				result.setTerminatedInTime(false);
 				result.setNoError(false);
 				result.setTime(Result.INVALID_TIME);
+				Logger.logInfo("Invalid command");
 			}
 		} catch (Exception e) {
 			Logger.logError(e);

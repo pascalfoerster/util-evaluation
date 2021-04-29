@@ -91,12 +91,10 @@ public abstract class Evaluator {
 			Logger.addOutLog(LogType.INFO, LogType.DEBUG);
 		}
 		if (config.logPath != null) {
-			Path logFile = config.logPath.resolve("output.log");
-			if (config.verbosity.getValue() > 0) {
-				Logger.addFileLog(logFile, LogType.ERROR, LogType.INFO, LogType.DEBUG, LogType.PROGRESS);
-			} else {
-				Logger.addFileLog(logFile, LogType.ERROR, LogType.INFO, LogType.DEBUG);
-			}
+			Path outLogFile = config.logPath.resolve("output.log");
+			Logger.addFileLog(outLogFile, LogType.INFO, LogType.DEBUG);
+			Path errLogFile = config.logPath.resolve("error.log");
+			Logger.addFileLog(errLogFile, LogType.ERROR);
 		}
 		Logger.addFormatter(new TimeStampFormatter());
 		Logger.addFormatter(tabFormatter);
