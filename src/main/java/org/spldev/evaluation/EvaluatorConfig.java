@@ -50,15 +50,19 @@ public class EvaluatorConfig {
 	private static final String DEFAULT_RESOURCE_DIRECTORY = "";
 	private static final String DEFAULT_MODELS_DIRECTORY = "models";
 	private static final String DEFAULT_CONFIG_DIRECTORY = "config";
+	private static final String DEFAULT_OUTPUT_DIRECTORY = "output";
 
 	private static final String COMMENT = "#";
 	private static final String STOP_MARK = "###";
 
 	protected static final List<Property<?>> propertyList = new LinkedList<>();
 
-	public final Property<String> outputPathProperty = new Property<>("output", Property.StringConverter);
-	public final Property<String> modelsPathProperty = new Property<>("models", Property.StringConverter);
-	public final Property<String> resourcesPathProperty = new Property<>("resources", Property.StringConverter);
+	public final Property<String> outputPathProperty = new Property<>("output", Property.StringConverter,
+			DEFAULT_OUTPUT_DIRECTORY);
+	public final Property<String> modelsPathProperty = new Property<>("models", Property.StringConverter,
+			DEFAULT_MODELS_DIRECTORY);
+	public final Property<String> resourcesPathProperty = new Property<>("resources", Property.StringConverter,
+			DEFAULT_RESOURCE_DIRECTORY);
 
 	public final Property<Boolean> append = new Property<>("append", Property.BooleanConverter);
 	public final Property<Integer> debug = new Property<>("debug", Property.IntegerConverter);
@@ -102,13 +106,9 @@ public class EvaluatorConfig {
 	}
 
 	private void initPaths() {
-		outputRootPath = Paths
-				.get((outputPathProperty.getValue().isEmpty()) ? "output" : outputPathProperty.getValue());
-		resourcePath = Paths.get((resourcesPathProperty.getValue().isEmpty()) ? DEFAULT_RESOURCE_DIRECTORY
-				: resourcesPathProperty.getValue());
-
-		modelPath = resourcePath.resolve(
-				(modelsPathProperty.getValue().isEmpty()) ? DEFAULT_MODELS_DIRECTORY : modelsPathProperty.getValue());
+		outputRootPath = Paths.get(outputPathProperty.getValue());
+		resourcePath = Paths.get(resourcesPathProperty.getValue());
+		modelPath = resourcePath.resolve(modelsPathProperty.getValue());
 	}
 
 	public void setup() {
