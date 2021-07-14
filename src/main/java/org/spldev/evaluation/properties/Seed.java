@@ -22,14 +22,14 @@
  */
 package org.spldev.evaluation.properties;
 
-public class Seed extends LongProperty {
+public class Seed extends Property<Long> {
 
 	public Seed() {
-		super("seed", System.currentTimeMillis());
+		super("seed", LongConverter, System.currentTimeMillis());
 	}
 
 	public Seed(long defaultValue) {
-		super("seed", defaultValue);
+		super("seed", LongConverter, defaultValue);
 	}
 
 }

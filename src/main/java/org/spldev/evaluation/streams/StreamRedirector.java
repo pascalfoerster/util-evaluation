@@ -47,14 +47,14 @@ public class StreamRedirector implements Runnable {
 	public void run() {
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
 			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
-				for (IOutputReader outputReader : outputReaderList) {
+				for (final IOutputReader outputReader : outputReaderList) {
 					try {
 						outputReader.readOutput(line);
-					} catch (Exception e) {
+					} catch (final Exception e) {
 					}
 				}
 			}
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			Logger.logError(e);
 		}
 	}

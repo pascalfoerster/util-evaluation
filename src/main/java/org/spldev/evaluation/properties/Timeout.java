@@ -22,10 +22,10 @@
  */
 package org.spldev.evaluation.properties;
 
-public class Timeout extends LongProperty {
+public class Timeout extends Property<Long> {
 
 	public Timeout() {
-		super("timeout");
+		super("timeout", LongConverter);
 	}
 
 }

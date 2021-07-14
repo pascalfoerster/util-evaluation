@@ -30,7 +30,7 @@ import java.util.Objects;
 import org.spldev.evaluation.streams.IOutputReader;
 
 public abstract class Algorithm<R> implements IOutputReader {
-	
+
 	protected int iterations = -1;
 
 	protected final ArrayList<String> commandElements = new ArrayList<>();
@@ -63,8 +63,8 @@ public abstract class Algorithm<R> implements IOutputReader {
 	}
 
 	public String getCommand() {
-		StringBuilder commandBuilder = new StringBuilder();
-		for (String commandElement : commandElements) {
+		final StringBuilder commandBuilder = new StringBuilder();
+		for (final String commandElement : commandElements) {
 			commandBuilder.append(commandElement);
 			commandBuilder.append(' ');
 		}

@@ -27,24 +27,25 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 
-import org.spldev.evaluation.properties.BoolProperty;
-import org.spldev.evaluation.properties.IProperty;
-import org.spldev.evaluation.properties.IntProperty;
-import org.spldev.evaluation.properties.LongProperty;
+import org.spldev.evaluation.properties.Property;
 import org.spldev.evaluation.properties.Seed;
-import org.spldev.evaluation.properties.StringProperty;
 import org.spldev.util.logging.Logger;
 
 /**
  * @author Sebastian Krieter
  */
 public class EvaluatorConfig {
+
+	private static final String DATE_FORMAT_STRING = "yyyy-MM-dd_HH-mm-ss";
+	private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT_STRING);
 
 	private static final String DEFAULT_RESOURCE_DIRECTORY = "";
 	private static final String DEFAULT_MODELS_DIRECTORY = "models";
@@ -53,20 +54,21 @@ public class EvaluatorConfig {
 	private static final String COMMENT = "#";
 	private static final String STOP_MARK = "###";
 
-	protected static final List<IProperty> propertyList = new LinkedList<>();
+	protected static final List<Property<?>> propertyList = new LinkedList<>();
 
-	public final StringProperty outputPathProperty = new StringProperty("output");
-	public final StringProperty modelsPathProperty = new StringProperty("models");
-	public final StringProperty resourcesPathProperty = new StringProperty("resources");
+	public final Property<String> outputPathProperty = new Property<>("output", Property.StringConverter);
+	public final Property<String> modelsPathProperty = new Property<>("models", Property.StringConverter);
+	public final Property<String> resourcesPathProperty = new Property<>("resources", Property.StringConverter);
 
-	public final BoolProperty append = new BoolProperty("append");
-	public final IntProperty debug = new IntProperty("debug");
-	public final IntProperty verbosity = new IntProperty("verbosity");
-	public final LongProperty timeout = new LongProperty("timeout", Long.MAX_VALUE);
+	public final Property<Boolean> append = new Property<>("append", Property.BooleanConverter);
+	public final Property<Integer> debug = new Property<>("debug", Property.IntegerConverter);
+	public final Property<Integer> verbosity = new Property<>("verbosity", Property.IntegerConverter);
+	public final Property<Long> timeout = new Property<>("timeout", Property.LongConverter, Long.MAX_VALUE);
 	public final Seed randomSeed = new Seed();
 
-	public final IntProperty systemIterations = new IntProperty("systemIterations", 1);
-	public final IntProperty algorithmIterations = new IntProperty("algorithmIterations", 1);
+	public final Property<Integer> systemIterations = new Property<>("systemIterations", Property.IntegerConverter, 1);
+	public final Property<Integer> algorithmIterations = new Property<>("algorithmIterations",
+			Property.IntegerConverter, 1);
 
 	public Path configPath;
 	public Path outputPath;
@@ -79,12 +81,12 @@ public class EvaluatorConfig {
 	public List<String> systemNames;
 	public List<Integer> systemIDs;
 
-	public static void addProperty(IProperty property) {
+	public static void addProperty(Property<?> property) {
 		propertyList.add(property);
 	}
 
 	public EvaluatorConfig() {
-		this.configPath = Paths.get(DEFAULT_CONFIG_DIRECTORY);
+		configPath = Paths.get(DEFAULT_CONFIG_DIRECTORY);
 	}
 
 	public EvaluatorConfig(String configPath) {
@@ -116,17 +118,17 @@ public class EvaluatorConfig {
 
 	private void initConfigPath(String configName) {
 		try {
-			readConfigFile(this.configPath.resolve(configName + ".properties"));
-		} catch (Exception e) {
+			readConfigFile(configPath.resolve(configName + ".properties"));
+		} catch (final Exception e) {
 		}
 	}
 
-	private long getOutputID() {
-		return Long.MAX_VALUE - System.currentTimeMillis();
+	private String getOutputID() {
+		return DATE_FORMAT.format(new Timestamp(System.currentTimeMillis()));
 	}
 
 	private void initOutputPath() {
-		Path currentOutputMarkerFile = outputRootPath.resolve(".current");
+		final Path currentOutputMarkerFile = outputRootPath.resolve(".current");
 		String currentOutputMarker = null;
 		if (Files.isReadable(currentOutputMarkerFile)) {
 			List<String> lines;
@@ -134,25 +136,25 @@ public class EvaluatorConfig {
 				lines = Files.readAllLines(currentOutputMarkerFile);
 
 				if (!lines.isEmpty()) {
-					String firstLine = lines.get(0);
+					final String firstLine = lines.get(0);
 					currentOutputMarker = firstLine.trim();
 				}
-			} catch (Exception e) {
+			} catch (final Exception e) {
 				Logger.logError(e);
 			}
 		}
-		
+
 		try {
 			Files.createDirectories(outputRootPath);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			Logger.logError(e);
 		}
-		
+
 		if (currentOutputMarker == null) {
-			currentOutputMarker = Long.toString(getOutputID());
+			currentOutputMarker = getOutputID();
 			try {
 				Files.write(currentOutputMarkerFile, currentOutputMarker.getBytes());
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				Logger.logError(e);
 			}
 		}
@@ -167,7 +169,7 @@ public class EvaluatorConfig {
 		List<String> lines = null;
 		try {
 			lines = Files.readAllLines(configPath.resolve("models.txt"), Charset.defaultCharset());
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			Logger.logError("No feature models specified!");
 			Logger.logError(e);
 		}
@@ -177,7 +179,7 @@ public class EvaluatorConfig {
 			systemNames = new ArrayList<>(lines.size());
 			systemIDs = new ArrayList<>(lines.size());
 			int lineNumber = 0;
-			for (String modelName : lines) {
+			for (final String modelName : lines) {
 				if (!modelName.trim().isEmpty()) {
 					if (!modelName.startsWith("\t")) {
 						if (modelName.startsWith(COMMENT)) {
@@ -202,15 +204,15 @@ public class EvaluatorConfig {
 		final Properties properties = new Properties();
 		try {
 			properties.load(Files.newInputStream(path));
-			for (IProperty prop : propertyList) {
-				String value = properties.getProperty(prop.getKey());
+			for (final Property<?> prop : propertyList) {
+				final String value = properties.getProperty(prop.getKey());
 				if (value != null) {
 					prop.setValue(value);
 				}
 			}
 			Logger.logInfo("Success!");
 			return properties;
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			Logger.logInfo("Fail! -> " + e.getMessage());
 			Logger.logError(e);
 			throw e;

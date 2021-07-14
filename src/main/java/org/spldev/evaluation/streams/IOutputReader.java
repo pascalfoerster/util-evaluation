@@ -23,7 +23,7 @@
 package org.spldev.evaluation.streams;
 
 public interface IOutputReader {
-	
-	public void readOutput(String line) throws Exception;
+
+	void readOutput(String line) throws Exception;
 
 }

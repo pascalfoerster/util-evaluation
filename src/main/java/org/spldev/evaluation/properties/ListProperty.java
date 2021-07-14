@@ -26,27 +26,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
-public class ListProperty<T> extends AProperty<List<T>> {
-
-	protected final Function<String, T> converter;
+public class ListProperty<T> extends Property<List<T>> {
 
 	public ListProperty(String name, Function<String, T> converter) {
-		super(name, Collections.emptyList());
-		this.converter = converter;
+		super(name, Property.parseList(converter), Collections.emptyList());
 	}
 
 	public ListProperty(String name, Function<String, T> converter, T defaultValue) {
-		super(name, Arrays.asList(defaultValue));
-		this.converter = converter;
-	}
-
-	@Override
-	protected List<T> cast(String valueString) throws Exception {
-		return Arrays.stream(valueString.split(",")) //
-				.map(converter) //
-				.collect(Collectors.toList());
+		super(name, Property.parseList(converter), Arrays.asList(defaultValue));
 	}
 
 }

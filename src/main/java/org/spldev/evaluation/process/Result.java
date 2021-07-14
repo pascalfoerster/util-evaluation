@@ -23,7 +23,7 @@
 package org.spldev.evaluation.process;
 
 public class Result<R> {
-	
+
 	public static long INVALID_TIME = -1;
 
 	private boolean terminatedInTime = false;

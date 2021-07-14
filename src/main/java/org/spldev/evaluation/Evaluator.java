@@ -33,7 +33,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.spldev.evaluation.properties.IProperty;
+import org.spldev.evaluation.properties.Property;
+import org.spldev.util.extension.ExtensionLoader;
 import org.spldev.util.io.csv.CSVWriter;
 import org.spldev.util.logging.Logger;
 import org.spldev.util.logging.Logger.LogType;
@@ -44,6 +45,10 @@ import org.spldev.util.logging.TimeStampFormatter;
  * @author Sebastian Krieter
  */
 public abstract class Evaluator {
+
+	static {
+		ExtensionLoader.load();
+	}
 
 	public final TabFormatter tabFormatter = new TabFormatter();
 	protected final EvaluatorConfig config;
@@ -63,7 +68,7 @@ public abstract class Evaluator {
 		setupDirectories();
 		installLogger();
 		addCSVWriters();
-		for (CSVWriter writer : csvWriterList.values()) {
+		for (final CSVWriter writer : csvWriterList.values()) {
 			writer.flush();
 		}
 		Logger.logInfo("Running " + this.getClass().getSimpleName());
@@ -76,7 +81,7 @@ public abstract class Evaluator {
 			createDir(config.csvPath);
 			createDir(config.tempPath);
 			createDir(config.logPath);
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			Logger.logError("Could not create output directory.");
 			Logger.logError(e);
 			throw e;
@@ -91,9 +96,9 @@ public abstract class Evaluator {
 			Logger.addOutLog(LogType.INFO, LogType.DEBUG);
 		}
 		if (config.logPath != null) {
-			Path outLogFile = config.logPath.resolve("output.log");
+			final Path outLogFile = config.logPath.resolve("output.log");
 			Logger.addFileLog(outLogFile, LogType.INFO, LogType.DEBUG);
-			Path errLogFile = config.logPath.resolve("error.log");
+			final Path errLogFile = config.logPath.resolve("error.log");
 			Logger.addFileLog(errLogFile, LogType.ERROR);
 		}
 		Logger.addFormatter(new TimeStampFormatter());
@@ -108,7 +113,7 @@ public abstract class Evaluator {
 	}
 
 	protected void addCSVWriters() {
-	};
+	}
 
 	public void dispose() {
 		Logger.uninstall();
@@ -132,7 +137,7 @@ public abstract class Evaluator {
 					return FileVisitResult.CONTINUE;
 				}
 			});
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			e.printStackTrace();
 		}
 	}
@@ -142,13 +147,13 @@ public abstract class Evaluator {
 	}
 
 	private void printConfigFile() {
-		for (IProperty prop : EvaluatorConfig.propertyList) {
+		for (final Property<?> prop : EvaluatorConfig.propertyList) {
 			Logger.logInfo(prop.toString());
 		}
 	}
 
 	protected void logSystem() {
-		StringBuilder sb = new StringBuilder();
+		final StringBuilder sb = new StringBuilder();
 		sb.append("Processing System: ");
 		sb.append(config.systemNames.get(systemID));
 		sb.append(" (");
@@ -162,11 +167,11 @@ public abstract class Evaluator {
 	protected CSVWriter addCSVWriter(String fileName, List<String> csvHeader) {
 		final CSVWriter existingCSVWriter = csvWriterList.get(fileName);
 		if (existingCSVWriter == null) {
-			CSVWriter csvWriter = new CSVWriter();
+			final CSVWriter csvWriter = new CSVWriter();
 			try {
 				csvWriter.setOutputDirectory(config.csvPath);
 				csvWriter.setFileName(fileName);
-			} catch (IOException e) {
+			} catch (final IOException e) {
 				Logger.logError(e);
 				return null;
 			}
@@ -187,7 +192,7 @@ public abstract class Evaluator {
 	}
 
 	protected void extendCSVWriter(CSVWriter writer, List<String> csvHeader) {
-		for (String headerValue : csvHeader) {
+		for (final String headerValue : csvHeader) {
 			writer.addHeaderValue(headerValue);
 		}
 	}
@@ -196,7 +201,7 @@ public abstract class Evaluator {
 		writer.createNewLine();
 		try {
 			writing.accept(writer);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			writer.removeLastLine();
 			throw e;
 		}

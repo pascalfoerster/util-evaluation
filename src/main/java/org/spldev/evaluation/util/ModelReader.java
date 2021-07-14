@@ -94,7 +94,7 @@ public class ModelReader<T> {
 	}
 
 	public Result<T> readFromFolder(final Path rootPath, final String name) {
-		Path modelFolder = rootPath.resolve(name);
+		final Path modelFolder = rootPath.resolve(name);
 		Logger.logInfo("Trying to load from folder " + modelFolder);
 		if (Files.exists(modelFolder) && Files.isDirectory(modelFolder)) {
 			final Path path = modelFolder.resolve(defaultFileName);
@@ -114,15 +114,15 @@ public class ModelReader<T> {
 		try (DirectoryStream<Path> files = Files.newDirectoryStream(rootPath, fileFilter)) {
 			final Iterator<Path> iterator = files.iterator();
 			while (iterator.hasNext()) {
-				Path next = iterator.next();
+				final Path next = iterator.next();
 				Logger.logInfo("Trying to load from file " + next);
-				Result<T> loadedFm = loadFile(next);
+				final Result<T> loadedFm = loadFile(next);
 				if (loadedFm.isPresent()) {
 					return loadedFm;
 				}
 			}
 			return Result.empty();
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			Logger.logError(e);
 		}
 		return Result.empty();
@@ -132,11 +132,11 @@ public class ModelReader<T> {
 		final Filter<Path> fileFilter = file -> Files.isReadable(file) && Files.isRegularFile(file)
 				&& file.getFileName().toString().matches(".*[.]zip\\Z");
 		try (DirectoryStream<Path> files = Files.newDirectoryStream(rootPath, fileFilter)) {
-			for (Path path : files) {
+			for (final Path path : files) {
 				Logger.logInfo("Trying to load from zip file " + path);
 				final URI uri = URI.create("jar:" + path.toUri().toString());
 				try (final FileSystem zipFs = FileSystems.newFileSystem(uri, Collections.<String, Object>emptyMap())) {
-					for (Path root : zipFs.getRootDirectories()) {
+					for (final Path root : zipFs.getRootDirectories()) {
 						Result<T> fm = readFromFolder(root, name);
 						if (fm.isPresent()) {
 							return fm;
@@ -146,11 +146,11 @@ public class ModelReader<T> {
 							return fm;
 						}
 					}
-				} catch (IOException e) {
+				} catch (final IOException e) {
 					Logger.logError(e);
 				}
 			}
-		} catch (IOException e) {
+		} catch (final IOException e) {
 			Logger.logError(e);
 		}
 		return Result.empty();

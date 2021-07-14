@@ -85,7 +85,7 @@ public class ProcessRunner {
 				result.setTime(Result.INVALID_TIME);
 				Logger.logInfo("Invalid command");
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			Logger.logError(e);
 			result.setTerminatedInTime(false);
 			result.setNoError(false);
@@ -93,7 +93,7 @@ public class ProcessRunner {
 		}
 		try {
 			result.setResult(algorithm.parseResults());
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			Logger.logError(e);
 			if (terminatedInTime) {
 				result.setNoError(false);
@@ -101,7 +101,7 @@ public class ProcessRunner {
 		}
 		try {
 			algorithm.postProcess();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			Logger.logError(e);
 		}
 	}
