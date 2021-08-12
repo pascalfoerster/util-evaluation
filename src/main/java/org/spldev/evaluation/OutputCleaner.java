@@ -22,21 +22,22 @@
  */
 package org.spldev.evaluation;
 
+import java.io.*;
 import java.nio.file.*;
+
+import org.spldev.util.logging.*;
 
 public class OutputCleaner extends Evaluator {
 
-	public OutputCleaner(String configPath) throws Exception {
-		super(configPath, null);
+	@Override
+	public void evaluate() throws IOException {
+		Files.deleteIfExists(config.outputRootPath.resolve(".current"));
+		Logger.logInfo("Reset current output path.");
 	}
 
-	public static void main(String[] args) throws Exception {
-		if (args.length != 1) {
-			System.out.println("Configuration path not specified!");
-		}
-		final OutputCleaner evaluator = new OutputCleaner(args[0]);
-		Files.deleteIfExists(evaluator.config.outputRootPath.resolve(".current"));
-		System.out.println("Reset current output path.");
+	@Override
+	public String getId() {
+		return "eval-clean";
 	}
 
 }

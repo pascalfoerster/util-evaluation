@@ -29,7 +29,7 @@ import java.util.*;
 import java.util.function.*;
 
 import org.spldev.evaluation.properties.*;
-import org.spldev.util.extension.*;
+import org.spldev.util.cli.*;
 import org.spldev.util.io.csv.*;
 import org.spldev.util.logging.*;
 import org.spldev.util.logging.Logger.*;
@@ -37,27 +37,42 @@ import org.spldev.util.logging.Logger.*;
 /**
  * @author Sebastian Krieter
  */
-public abstract class Evaluator {
+public abstract class Evaluator implements CLIFunction {
 
-	static {
-		ExtensionLoader.load();
+	@Override
+	public void run(List<String> args) {
+		if (args.size() < 1) {
+			System.out.println("Configuration path not specified!");
+			return;
+		}
+		Logger.logInfo(System.getProperty("user.dir"));
+		try {
+			init(args.get(0), args.size() > 1 ? args.get(1) : "config");
+			printConfigFile();
+			evaluate();
+		} catch (Exception e) {
+			Logger.logError(e);
+		} finally {
+			dispose();
+		}
+	}
+
+	@Override
+	public String getHelp() {
+		return "";
 	}
 
 	public final TabFormatter tabFormatter = new TabFormatter();
-	protected final EvaluatorConfig config;
+	protected EvaluatorConfig config;
 
 	private final LinkedHashMap<String, CSVWriter> csvWriterList = new LinkedHashMap<>();
 
 	protected int systemIndex;
 	protected int systemIteration;
 
-	public Evaluator(String configPath, String configName) throws Exception {
-		Logger.logInfo(System.getProperty("user.dir"));
+	public void init(String configPath, String configName) throws Exception {
 		config = new EvaluatorConfig(configPath);
 		config.readConfig(configName);
-	}
-
-	public void init() throws Exception {
 		setupDirectories();
 		installLogger();
 		addCSVWriters();
@@ -135,9 +150,7 @@ public abstract class Evaluator {
 		}
 	}
 
-	public void run() {
-		printConfigFile();
-	}
+	public abstract void evaluate() throws Exception;
 
 	private void printConfigFile() {
 		for (final Property<?> prop : EvaluatorConfig.propertyList) {
