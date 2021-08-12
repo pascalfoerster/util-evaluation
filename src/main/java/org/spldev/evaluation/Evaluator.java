@@ -1,45 +1,38 @@
 /* -----------------------------------------------------------------------------
- * Evaluation-Lib - Miscellaneous functions for performing an evaluation.
+ * Evaluation Lib - Miscellaneous functions for performing an evaluation.
  * Copyright (C) 2021  Sebastian Krieter
  * 
- * This file is part of Evaluation-Lib.
+ * This file is part of Evaluation Lib.
  * 
- * Evaluation-Lib is free software: you can redistribute it and/or modify it
+ * Evaluation Lib is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
  * the Free Software Foundation, either version 3 of the License,
  * or (at your option) any later version.
  * 
- * Evaluation-Lib is distributed in the hope that it will be useful,
+ * Evaluation Lib is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  * See the GNU Lesser General Public License for more details.
  * 
  * You should have received a copy of the GNU Lesser General Public License
- * along with Evaluation-Lib.  If not, see <https://www.gnu.org/licenses/>.
+ * along with Evaluation Lib.  If not, see <https://www.gnu.org/licenses/>.
  * 
  * See <https://github.com/skrieter/evaluation> for further information.
  * -----------------------------------------------------------------------------
  */
 package org.spldev.evaluation;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.function.Consumer;
+import java.io.*;
+import java.nio.file.*;
+import java.nio.file.attribute.*;
+import java.util.*;
+import java.util.function.*;
 
-import org.spldev.evaluation.properties.Property;
-import org.spldev.util.extension.ExtensionLoader;
-import org.spldev.util.io.csv.CSVWriter;
-import org.spldev.util.logging.Logger;
-import org.spldev.util.logging.Logger.LogType;
-import org.spldev.util.logging.TabFormatter;
-import org.spldev.util.logging.TimeStampFormatter;
+import org.spldev.evaluation.properties.*;
+import org.spldev.util.extension.*;
+import org.spldev.util.io.csv.*;
+import org.spldev.util.logging.*;
+import org.spldev.util.logging.Logger.*;
 
 /**
  * @author Sebastian Krieter
@@ -55,7 +48,7 @@ public abstract class Evaluator {
 
 	private final LinkedHashMap<String, CSVWriter> csvWriterList = new LinkedHashMap<>();
 
-	protected int systemID;
+	protected int systemIndex;
 	protected int systemIteration;
 
 	public Evaluator(String configPath, String configName) throws Exception {
@@ -155,9 +148,9 @@ public abstract class Evaluator {
 	protected void logSystem() {
 		final StringBuilder sb = new StringBuilder();
 		sb.append("Processing System: ");
-		sb.append(config.systemNames.get(systemID));
+		sb.append(config.systemNames.get(systemIndex));
 		sb.append(" (");
-		sb.append(systemID + 1);
+		sb.append(systemIndex + 1);
 		sb.append("/");
 		sb.append(config.systemNames.size());
 		sb.append(")");
