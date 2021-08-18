@@ -50,7 +50,7 @@ public abstract class Evaluator implements CLIFunction {
 			init(args.get(0), args.size() > 1 ? args.get(1) : "config");
 			printConfigFile();
 			evaluate();
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			Logger.logError(e);
 		} finally {
 			dispose();
@@ -97,11 +97,11 @@ public abstract class Evaluator implements CLIFunction {
 	}
 
 	private void installLogger() throws FileNotFoundException {
-		Logger.addErrLog(LogType.ERROR);
+		Logger.setErrLog(LogType.ERROR);
 		if (config.verbosity.getValue() > 0) {
-			Logger.addOutLog(LogType.INFO, LogType.DEBUG, LogType.PROGRESS);
+			Logger.setOutLog(LogType.INFO, LogType.DEBUG, LogType.PROGRESS);
 		} else {
-			Logger.addOutLog(LogType.INFO, LogType.DEBUG);
+			Logger.setOutLog(LogType.INFO, LogType.DEBUG);
 		}
 		if (config.logPath != null) {
 			final Path outLogFile = config.logPath.resolve("output.log");
