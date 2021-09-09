@@ -42,8 +42,8 @@ public class Property<T> {
 
 	protected static <E> Function<String, List<E>> parseList(Function<String, E> elementConverter) {
 		return valueString -> Arrays.stream(valueString.split(",")) //
-				.map(elementConverter) //
-				.collect(Collectors.toList());
+			.map(elementConverter) //
+			.collect(Collectors.toList());
 	}
 
 	public Property(String name, Function<String, T> converter) {

@@ -51,11 +51,11 @@ public class EvaluatorConfig {
 	protected static final List<Property<?>> propertyList = new LinkedList<>();
 
 	public final Property<String> outputPathProperty = new Property<>("output", Property.StringConverter,
-			DEFAULT_OUTPUT_DIRECTORY);
+		DEFAULT_OUTPUT_DIRECTORY);
 	public final Property<String> modelsPathProperty = new Property<>("models", Property.StringConverter,
-			DEFAULT_MODELS_DIRECTORY);
+		DEFAULT_MODELS_DIRECTORY);
 	public final Property<String> resourcesPathProperty = new Property<>("resources", Property.StringConverter,
-			DEFAULT_RESOURCE_DIRECTORY);
+		DEFAULT_RESOURCE_DIRECTORY);
 
 	public final Property<Boolean> append = new Property<>("append", Property.BooleanConverter);
 	public final Property<Integer> debug = new Property<>("debug", Property.IntegerConverter);
@@ -65,7 +65,7 @@ public class EvaluatorConfig {
 
 	public final Property<Integer> systemIterations = new Property<>("systemIterations", Property.IntegerConverter, 1);
 	public final Property<Integer> algorithmIterations = new Property<>("algorithmIterations",
-			Property.IntegerConverter, 1);
+		Property.IntegerConverter, 1);
 
 	public Path configPath;
 	public Path outputPath;

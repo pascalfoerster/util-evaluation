@@ -106,7 +106,7 @@ public class ModelReader<T> {
 
 	public Result<T> readFromFile(final Path rootPath, final String name) {
 		final Filter<Path> fileFilter = file -> Files.isReadable(file) && Files.isRegularFile(file)
-				&& file.getFileName().toString().matches("^" + name + "\\.\\w+$");
+			&& file.getFileName().toString().matches("^" + name + "\\.\\w+$");
 		try (DirectoryStream<Path> files = Files.newDirectoryStream(rootPath, fileFilter)) {
 			final Iterator<Path> iterator = files.iterator();
 			while (iterator.hasNext()) {
@@ -126,7 +126,7 @@ public class ModelReader<T> {
 
 	protected Result<T> readFromZip(final Path rootPath, final String name) {
 		final Filter<Path> fileFilter = file -> Files.isReadable(file) && Files.isRegularFile(file)
-				&& file.getFileName().toString().matches(".*[.]zip\\Z");
+			&& file.getFileName().toString().matches(".*[.]zip\\Z");
 		try (DirectoryStream<Path> files = Files.newDirectoryStream(rootPath, fileFilter)) {
 			for (final Path path : files) {
 				Logger.logInfo("Trying to load from zip file " + path);

@@ -49,9 +49,9 @@ public class ProcessRunner {
 
 				final ErrStreamCollector errStreamCollector = new ErrStreamCollector();
 				final StreamRedirector errRedirector = new StreamRedirector(
-						Arrays.asList(new ErrStreamReader(), errStreamCollector));
+					Arrays.asList(new ErrStreamReader(), errStreamCollector));
 				final StreamRedirector outRedirector = new StreamRedirector(
-						Arrays.asList(new OutStreamReader(), algorithm));
+					Arrays.asList(new OutStreamReader(), algorithm));
 				final Thread outThread = new Thread(outRedirector);
 				final Thread errThread = new Thread(errRedirector);
 				try {
