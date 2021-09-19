@@ -72,6 +72,7 @@ public abstract class Evaluator implements CLIFunction {
 
 	public void init(String configPath, String configName) throws Exception {
 		config = new EvaluatorConfig(configPath);
+		addProperties();
 		config.readConfig(configName);
 		setupDirectories();
 		installLogger();
@@ -80,6 +81,9 @@ public abstract class Evaluator implements CLIFunction {
 			writer.flush();
 		}
 		Logger.logInfo("Running " + this.getClass().getSimpleName());
+	}
+
+	protected void addProperties() {
 	}
 
 	protected void setupDirectories() throws IOException {
