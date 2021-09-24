@@ -56,12 +56,6 @@ public abstract class Evaluator implements CLIFunction {
 			dispose();
 		}
 	}
-
-	@Override
-	public String getHelp() {
-		return "";
-	}
-
 	public final TabFormatter tabFormatter = new TabFormatter();
 	protected EvaluatorConfig config;
 
