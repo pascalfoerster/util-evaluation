@@ -105,6 +105,11 @@ public class ModelReader<T> {
 	}
 
 	public Result<T> readFromFile(final Path rootPath, final String name) {
+		Logger.logInfo("Trying to load from file " + name);
+		Result<T> loadedFm = loadFile(rootPath.resolve(name));
+		if (loadedFm.isPresent()) {
+			return loadedFm;
+		}
 		final Filter<Path> fileFilter = file -> Files.isReadable(file) && Files.isRegularFile(file)
 			&& file.getFileName().toString().matches("^" + name + "\\.\\w+$");
 		try (DirectoryStream<Path> files = Files.newDirectoryStream(rootPath, fileFilter)) {
@@ -112,7 +117,7 @@ public class ModelReader<T> {
 			while (iterator.hasNext()) {
 				final Path next = iterator.next();
 				Logger.logInfo("Trying to load from file " + next);
-				final Result<T> loadedFm = loadFile(next);
+				loadedFm = loadFile(next);
 				if (loadedFm.isPresent()) {
 					return loadedFm;
 				}
