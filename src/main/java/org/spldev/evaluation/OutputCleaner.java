@@ -40,4 +40,8 @@ public class OutputCleaner extends Evaluator {
 		return "eval-clean";
 	}
 
+	@Override
+	public String getDescription() {
+		return "Cleans current evaluation results";
+	}
 }
