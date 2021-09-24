@@ -68,8 +68,23 @@ public abstract class Evaluator implements CLIFunction {
 		config = new EvaluatorConfig(configPath);
 		addProperties();
 		config.readConfig(configName);
-		setupDirectories();
-		installLogger();
+		initPaths();
+		try {
+			setupDirectories();
+		} catch (final IOException e) {
+			Logger.logError("Fail -> Could not create output directory.");
+			Logger.logError(e);
+			throw e;
+		}
+		try {
+			installLogger();
+		} catch (final Exception e) {
+			Logger.logError("Fail -> Could not install logger.");
+			Logger.logError(e);
+			throw e;
+		}
+
+		config.readSystemNames();
 		addCSVWriters();
 		for (final CSVWriter writer : csvWriterList.values()) {
 			writer.flush();
@@ -77,11 +92,20 @@ public abstract class Evaluator implements CLIFunction {
 		Logger.logInfo("Running " + this.getClass().getSimpleName());
 	}
 
+	protected void initPaths() {
+		config.outputRootPath = Paths.get(config.outputPathProperty.getValue());
+		config.resourcePath = Paths.get(config.resourcesPathProperty.getValue());
+		config.modelPath = config.resourcePath.resolve(config.modelsPathProperty.getValue());
+		config.outputPath = config.outputRootPath.resolve(config.readCurrentOutputMarker());
+		config.csvPath = config.outputPath.resolve("data");
+		config.tempPath = config.outputPath.resolve("temp");
+		config.logPath = config.outputPath.resolve("log-" + config.getTimeStamp());
+	}
+
 	protected void addProperties() {
 	}
 
 	protected void setupDirectories() throws IOException {
-		config.setup();
 		try {
 			createDir(config.outputPath);
 			createDir(config.csvPath);

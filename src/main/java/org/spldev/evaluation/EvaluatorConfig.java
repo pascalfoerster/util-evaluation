@@ -23,13 +23,15 @@
 package org.spldev.evaluation;
 
 import java.io.*;
-import java.nio.charset.*;
 import java.nio.file.*;
 import java.sql.*;
 import java.text.*;
 import java.util.*;
 
 import org.spldev.evaluation.properties.*;
+import org.spldev.util.io.*;
+import org.spldev.util.io.namelist.*;
+import org.spldev.util.io.namelist.NameListFormat.*;
 import org.spldev.util.logging.*;
 
 /**
@@ -44,9 +46,6 @@ public class EvaluatorConfig {
 	private static final String DEFAULT_MODELS_DIRECTORY = "models";
 	private static final String DEFAULT_CONFIG_DIRECTORY = "config";
 	private static final String DEFAULT_OUTPUT_DIRECTORY = "output";
-
-	private static final String COMMENT = "#";
-	private static final String STOP_MARK = "###";
 
 	protected static final List<Property<?>> propertyList = new LinkedList<>();
 
@@ -90,18 +89,11 @@ public class EvaluatorConfig {
 		this.configPath = Paths.get(configPath);
 	}
 
-	public void readConfig(String name) {
-		initConfigPath("paths");
+	public void readConfig(String name) throws Exception {
+		readConfigFile("paths");
 		if (name != null) {
-			initConfigPath(name);
+			readConfigFile(name);
 		}
-		initPaths();
-	}
-
-	private void initPaths() {
-		outputRootPath = Paths.get(outputPathProperty.getValue());
-		resourcePath = Paths.get(resourcesPathProperty.getValue());
-		modelPath = resourcePath.resolve(modelsPathProperty.getValue());
 	}
 
 	public void setup() {
@@ -109,18 +101,19 @@ public class EvaluatorConfig {
 		readSystemNames();
 	}
 
-	private void initConfigPath(String configName) {
-		try {
-			readConfigFile(configPath.resolve(configName + ".properties"));
-		} catch (final Exception e) {
-		}
-	}
-
-	private String getOutputID() {
+	public String getTimeStamp() {
 		return DATE_FORMAT.format(new Timestamp(System.currentTimeMillis()));
 	}
 
-	private void initOutputPath() {
+	public void initOutputPath() {
+		final String currentOutputMarker = readCurrentOutputMarker();
+		outputPath = outputRootPath.resolve(currentOutputMarker);
+		csvPath = outputPath.resolve("data");
+		tempPath = outputPath.resolve("temp");
+		logPath = outputPath.resolve("log-" + System.currentTimeMillis());
+	}
+
+	public String readCurrentOutputMarker() {
 		final Path currentOutputMarkerFile = outputRootPath.resolve(".current");
 		String currentOutputMarker = null;
 		if (Files.isReadable(currentOutputMarkerFile)) {
@@ -144,55 +137,30 @@ public class EvaluatorConfig {
 		}
 
 		if (currentOutputMarker == null) {
-			currentOutputMarker = getOutputID();
+			currentOutputMarker = getTimeStamp();
 			try {
 				Files.write(currentOutputMarkerFile, currentOutputMarker.getBytes());
 			} catch (final IOException e) {
 				Logger.logError(e);
 			}
 		}
-		outputPath = outputRootPath.resolve(currentOutputMarker);
-		csvPath = outputPath.resolve("data");
-		tempPath = outputPath.resolve("temp");
-		logPath = outputPath.resolve("log-" + System.currentTimeMillis());
+		return currentOutputMarker;
 	}
 
-	private void readSystemNames() {
+	public void readSystemNames() {
+		final List<NameEntry> names = FileHandler.load(configPath.resolve("models.txt"), new NameListFormat()).orElse(
+			Collections.emptyList(), Logger::logProblems);
+		systemNames = new ArrayList<>(names.size());
+		systemIDs = new ArrayList<>(names.size());
 
-		List<String> lines = null;
-		try {
-			lines = Files.readAllLines(configPath.resolve("models.txt"), Charset.defaultCharset());
-		} catch (final IOException e) {
-			Logger.logError("No feature models specified!");
-			Logger.logError(e);
-		}
-
-		if (lines != null) {
-			boolean pause = false;
-			systemNames = new ArrayList<>(lines.size());
-			systemIDs = new ArrayList<>(lines.size());
-			int lineNumber = 0;
-			for (final String modelName : lines) {
-				if (!modelName.trim().isEmpty()) {
-					if (!modelName.startsWith("\t")) {
-						if (modelName.startsWith(COMMENT)) {
-							if (modelName.equals(STOP_MARK)) {
-								pause = !pause;
-							}
-						} else if (!pause) {
-							systemNames.add(modelName.trim());
-							systemIDs.add(lineNumber);
-						}
-					}
-				}
-				lineNumber++;
-			}
-		} else {
-			systemNames = Collections.<String>emptyList();
+		for (final NameEntry nameEntry : names) {
+			systemNames.add(nameEntry.getName());
+			systemIDs.add(nameEntry.getID());
 		}
 	}
 
-	private Properties readConfigFile(final Path path) throws Exception {
+	private Properties readConfigFile(String configName) throws Exception {
+		final Path path = configPath.resolve(configName + ".properties");
 		Logger.logInfo("Reading config file. (" + path.toString() + ") ... ");
 		final Properties properties = new Properties();
 		try {
