@@ -56,6 +56,7 @@ public abstract class Evaluator implements CLIFunction {
 			dispose();
 		}
 	}
+
 	public final TabFormatter tabFormatter = new TabFormatter();
 	protected EvaluatorConfig config;
 
