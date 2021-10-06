@@ -193,6 +193,21 @@ public abstract class Evaluator implements CLIFunction {
 		Logger.logInfo(sb.toString());
 	}
 
+	protected void logSystemRun() {
+		final StringBuilder sb = new StringBuilder();
+		sb.append("Processing System: ");
+		sb.append(config.systemNames.get(systemIndex));
+		sb.append(" (");
+		sb.append(systemIndex + 1);
+		sb.append("/");
+		sb.append(config.systemNames.size());
+		sb.append(") - ");
+		sb.append(systemIteration + 1);
+		sb.append("/");
+		sb.append(config.systemIterations.getValue());
+		Logger.logInfo(sb.toString());
+	}
+
 	protected CSVWriter addCSVWriter(String fileName, List<String> csvHeader) {
 		final CSVWriter existingCSVWriter = csvWriterList.get(fileName);
 		if (existingCSVWriter == null) {

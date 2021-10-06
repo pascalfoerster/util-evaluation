@@ -32,7 +32,8 @@ public class ProcessRunner {
 
 	private long timeout = Long.MAX_VALUE;
 
-	public <R> void run(Algorithm<R> algorithm, Result<R> result) {
+	public <R> Result<R> run(Algorithm<R> algorithm) {
+		final Result<R> result = new Result<>();
 		boolean terminatedInTime = false;
 		boolean noError = false;
 		long startTime = 0, endTime = 0;
@@ -100,6 +101,7 @@ public class ProcessRunner {
 		} catch (final Exception e) {
 			Logger.logError(e);
 		}
+		return result;
 	}
 
 	public long getTimeout() {
