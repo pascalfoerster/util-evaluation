@@ -36,7 +36,7 @@ public class OutputCleaner extends Evaluator {
 	}
 
 	@Override
-	public String getId() {
+	public String getName() {
 		return "eval-clean";
 	}
 
