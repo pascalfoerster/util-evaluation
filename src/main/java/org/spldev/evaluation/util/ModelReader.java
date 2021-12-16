@@ -29,7 +29,7 @@ import java.nio.file.DirectoryStream.*;
 import java.nio.file.FileSystem;
 import java.util.*;
 
-import org.spldev.util.*;
+import org.spldev.util.data.Result;
 import org.spldev.util.io.*;
 import org.spldev.util.io.format.*;
 import org.spldev.util.logging.*;
