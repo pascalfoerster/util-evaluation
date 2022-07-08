@@ -148,7 +148,7 @@ public class EvaluatorConfig {
 	}
 
 	public void readSystemNames() {
-		final List<NameEntry> names = FileHandler.load(configPath.resolve("models.txt"), new NameListFormat()).orElse(
+		final List<NameEntry> names = IO.load(configPath.resolve("models.txt"), new NameListFormat()).orElse(
 			Collections.emptyList(), Logger::logProblems);
 		systemNames = new ArrayList<>(names.size());
 		systemIDs = new ArrayList<>(names.size());

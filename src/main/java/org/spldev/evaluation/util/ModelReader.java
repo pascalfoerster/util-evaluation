@@ -86,7 +86,7 @@ public class ModelReader<T> {
 	}
 
 	public Result<T> loadFile(final Path path) {
-		return FileHandler.load(path, formatSupplier);
+		return IO.load(path, formatSupplier);
 	}
 
 	public Result<T> readFromFolder(final Path rootPath, final String name) {
