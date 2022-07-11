@@ -20,7 +20,7 @@
  * See <https://github.com/FeatJAR/evaluation> for further information.
  * -----------------------------------------------------------------------------
  */
-package org.spldev.evaluation.util;
+package de.featjar.evaluation.util;
 
 import java.io.*;
 import java.net.*;
@@ -29,10 +29,14 @@ import java.nio.file.DirectoryStream.*;
 import java.nio.file.FileSystem;
 import java.util.*;
 
-import org.spldev.util.data.*;
-import org.spldev.util.io.*;
-import org.spldev.util.io.format.*;
-import org.spldev.util.logging.*;
+import de.featjar.util.data.Result;
+import de.featjar.util.io.IO;
+import de.featjar.util.io.format.FormatSupplier;
+import de.featjar.util.logging.Logger;
+import de.featjar.util.data.*;
+import de.featjar.util.io.*;
+import de.featjar.util.io.format.*;
+import de.featjar.util.logging.*;
 
 /**
  * @author Sebastian Krieter

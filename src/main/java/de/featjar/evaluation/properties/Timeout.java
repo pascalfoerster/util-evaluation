@@ -20,16 +20,12 @@
  * See <https://github.com/FeatJAR/evaluation> for further information.
  * -----------------------------------------------------------------------------
  */
-package org.spldev.evaluation.streams;
+package de.featjar.evaluation.properties;
 
-import org.spldev.util.logging.*;
+public class Timeout extends Property<Long> {
 
-public class OutStreamReader implements IOutputReader {
-
-	@Override
-	public void readOutput(String line) throws Exception {
-		Logger.logInfo(line);
-
+	public Timeout() {
+		super("timeout", LongConverter);
 	}
 
 }

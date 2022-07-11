@@ -20,9 +20,10 @@
  * See <https://github.com/FeatJAR/evaluation> for further information.
  * -----------------------------------------------------------------------------
  */
-package org.spldev.evaluation.util;
+package de.featjar.evaluation.util;
 
-import org.spldev.util.logging.*;
+import de.featjar.util.logging.Logger;
+import de.featjar.util.logging.*;
 
 /**
  * @author Sebastian Krieter

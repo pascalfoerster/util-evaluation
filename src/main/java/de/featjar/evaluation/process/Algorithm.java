@@ -20,12 +20,13 @@
  * See <https://github.com/FeatJAR/evaluation> for further information.
  * -----------------------------------------------------------------------------
  */
-package org.spldev.evaluation.process;
+package de.featjar.evaluation.process;
 
 import java.io.*;
 import java.util.*;
 
-import org.spldev.evaluation.streams.*;
+import de.featjar.evaluation.streams.IOutputReader;
+import de.featjar.evaluation.streams.*;
 
 public abstract class Algorithm<R> implements IOutputReader {
 

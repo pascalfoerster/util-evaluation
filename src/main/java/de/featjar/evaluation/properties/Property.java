@@ -20,13 +20,14 @@
  * See <https://github.com/FeatJAR/evaluation> for further information.
  * -----------------------------------------------------------------------------
  */
-package org.spldev.evaluation.properties;
+package de.featjar.evaluation.properties;
 
 import java.util.*;
 import java.util.function.*;
 import java.util.stream.*;
 
-import org.spldev.evaluation.*;
+import de.featjar.evaluation.EvaluatorConfig;
+import de.featjar.evaluation.*;
 
 public class Property<T> {
 

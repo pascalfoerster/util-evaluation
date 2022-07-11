@@ -20,9 +20,10 @@
  * See <https://github.com/FeatJAR/evaluation> for further information.
  * -----------------------------------------------------------------------------
  */
-package org.spldev.evaluation.streams;
+package de.featjar.evaluation.streams;
 
-import org.spldev.util.logging.*;
+import de.featjar.util.logging.Logger;
+import de.featjar.util.logging.*;
 
 public class ErrStreamReader implements IOutputReader {
 

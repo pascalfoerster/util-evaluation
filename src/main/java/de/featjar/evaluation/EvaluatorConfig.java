@@ -20,7 +20,7 @@
  * See <https://github.com/FeatJAR/evaluation> for further information.
  * -----------------------------------------------------------------------------
  */
-package org.spldev.evaluation;
+package de.featjar.evaluation;
 
 import java.io.*;
 import java.nio.file.*;
@@ -28,11 +28,15 @@ import java.sql.*;
 import java.text.*;
 import java.util.*;
 
-import org.spldev.evaluation.properties.*;
-import org.spldev.util.io.*;
-import org.spldev.util.io.namelist.*;
-import org.spldev.util.io.namelist.NameListFormat.*;
-import org.spldev.util.logging.*;
+import de.featjar.evaluation.properties.Property;
+import de.featjar.evaluation.properties.Seed;
+import de.featjar.util.io.IO;
+import de.featjar.util.io.namelist.NameListFormat;
+import de.featjar.util.logging.Logger;
+import de.featjar.evaluation.properties.*;
+import de.featjar.util.io.*;
+import de.featjar.util.io.namelist.*;
+import de.featjar.util.logging.*;
 
 /**
  * @author Sebastian Krieter
@@ -148,12 +152,13 @@ public class EvaluatorConfig {
 	}
 
 	public void readSystemNames() {
-		final List<NameEntry> names = IO.load(configPath.resolve("models.txt"), new NameListFormat()).orElse(
-			Collections.emptyList(), Logger::logProblems);
+		final List<NameListFormat.NameEntry> names = IO.load(configPath.resolve("models.txt"), new NameListFormat())
+			.orElse(
+				Collections.emptyList(), Logger::logProblems);
 		systemNames = new ArrayList<>(names.size());
 		systemIDs = new ArrayList<>(names.size());
 
-		for (final NameEntry nameEntry : names) {
+		for (final NameListFormat.NameEntry nameEntry : names) {
 			systemNames.add(nameEntry.getName());
 			systemIDs.add(nameEntry.getID());
 		}

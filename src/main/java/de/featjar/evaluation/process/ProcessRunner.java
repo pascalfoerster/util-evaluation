@@ -20,13 +20,18 @@
  * See <https://github.com/FeatJAR/evaluation> for further information.
  * -----------------------------------------------------------------------------
  */
-package org.spldev.evaluation.process;
+package de.featjar.evaluation.process;
 
 import java.util.*;
 import java.util.concurrent.*;
 
-import org.spldev.evaluation.streams.*;
-import org.spldev.util.logging.*;
+import de.featjar.evaluation.streams.ErrStreamCollector;
+import de.featjar.evaluation.streams.ErrStreamReader;
+import de.featjar.evaluation.streams.OutStreamReader;
+import de.featjar.evaluation.streams.StreamRedirector;
+import de.featjar.util.logging.Logger;
+import de.featjar.evaluation.streams.*;
+import de.featjar.util.logging.*;
 
 public class ProcessRunner {
 

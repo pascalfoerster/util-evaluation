@@ -20,7 +20,7 @@
  * See <https://github.com/FeatJAR/evaluation> for further information.
  * -----------------------------------------------------------------------------
  */
-package org.spldev.evaluation.streams;
+package de.featjar.evaluation.streams;
 
 public interface IOutputReader {
 

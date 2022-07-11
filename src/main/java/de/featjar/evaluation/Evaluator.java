@@ -20,7 +20,7 @@
  * See <https://github.com/FeatJAR/evaluation> for further information.
  * -----------------------------------------------------------------------------
  */
-package org.spldev.evaluation;
+package de.featjar.evaluation;
 
 import java.io.*;
 import java.nio.file.*;
@@ -28,11 +28,16 @@ import java.nio.file.attribute.*;
 import java.util.*;
 import java.util.function.*;
 
-import org.spldev.evaluation.properties.*;
-import org.spldev.util.cli.*;
-import org.spldev.util.io.csv.*;
-import org.spldev.util.logging.*;
-import org.spldev.util.logging.Logger.*;
+import de.featjar.evaluation.properties.Property;
+import de.featjar.util.cli.CLIFunction;
+import de.featjar.util.io.csv.CSVWriter;
+import de.featjar.util.logging.Logger;
+import de.featjar.util.logging.TabFormatter;
+import de.featjar.util.logging.TimeStampFormatter;
+import de.featjar.evaluation.properties.*;
+import de.featjar.util.cli.*;
+import de.featjar.util.io.csv.*;
+import de.featjar.util.logging.*;
 
 /**
  * @author Sebastian Krieter
@@ -120,17 +125,17 @@ public abstract class Evaluator implements CLIFunction {
 	}
 
 	private void installLogger() throws FileNotFoundException {
-		Logger.setErrLog(LogType.ERROR);
+		Logger.setErrLog(Logger.LogType.ERROR);
 		if (config.verbosity.getValue() > 0) {
-			Logger.setOutLog(LogType.INFO, LogType.DEBUG, LogType.PROGRESS);
+			Logger.setOutLog(Logger.LogType.INFO, Logger.LogType.DEBUG, Logger.LogType.PROGRESS);
 		} else {
-			Logger.setOutLog(LogType.INFO, LogType.DEBUG);
+			Logger.setOutLog(Logger.LogType.INFO, Logger.LogType.DEBUG);
 		}
 		if (config.logPath != null) {
 			final Path outLogFile = config.logPath.resolve("output.log");
-			Logger.addFileLog(outLogFile, LogType.INFO, LogType.DEBUG);
+			Logger.addFileLog(outLogFile, Logger.LogType.INFO, Logger.LogType.DEBUG);
 			final Path errLogFile = config.logPath.resolve("error.log");
-			Logger.addFileLog(errLogFile, LogType.ERROR);
+			Logger.addFileLog(errLogFile, Logger.LogType.ERROR);
 		}
 		Logger.addFormatter(new TimeStampFormatter());
 		Logger.addFormatter(tabFormatter);

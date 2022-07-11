@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <extensions>
-	<point id="org.spldev.util.cli.CLIFunctionManager">
-	    <extension id="org.spldev.evaluation.OutputCleaner" />
+	<point id="de.featjar.util.cli.CLIFunctionManager">
+	    <extension id="de.featjar.evaluation.OutputCleaner" />
 	</point>
 </extensions>

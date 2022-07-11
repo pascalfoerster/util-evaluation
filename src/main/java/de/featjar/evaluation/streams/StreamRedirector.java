@@ -20,21 +20,41 @@
  * See <https://github.com/FeatJAR/evaluation> for further information.
  * -----------------------------------------------------------------------------
  */
-package org.spldev.evaluation.streams;
+package de.featjar.evaluation.streams;
 
+import java.io.*;
 import java.util.*;
 
-public class ErrStreamCollector implements IOutputReader {
+import de.featjar.util.logging.Logger;
+import de.featjar.util.logging.*;
 
-	private final List<String> errList = new ArrayList<>();
+public class StreamRedirector implements Runnable {
 
-	@Override
-	public void readOutput(String line) throws Exception {
-		errList.add(line);
+	private final List<IOutputReader> outputReaderList;
+	private InputStream in;
+
+	public StreamRedirector(List<IOutputReader> outputReaderList) {
+		this.outputReaderList = outputReaderList;
 	}
 
-	public List<String> getErrList() {
-		return errList;
+	public void setInputStream(InputStream in) {
+		this.in = in;
+	}
+
+	@Override
+	public void run() {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+			for (String line = reader.readLine(); line != null; line = reader.readLine()) {
+				for (final IOutputReader outputReader : outputReaderList) {
+					try {
+						outputReader.readOutput(line);
+					} catch (final Exception e) {
+					}
+				}
+			}
+		} catch (final IOException e) {
+			Logger.logError(e);
+		}
 	}
 
 }

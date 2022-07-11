@@ -20,28 +20,16 @@
  * See <https://github.com/FeatJAR/evaluation> for further information.
  * -----------------------------------------------------------------------------
  */
-package org.spldev.evaluation;
+package de.featjar.evaluation.properties;
 
-import java.io.*;
-import java.nio.file.*;
+public class Seed extends Property<Long> {
 
-import org.spldev.util.logging.*;
-
-public class OutputCleaner extends Evaluator {
-
-	@Override
-	public void evaluate() throws IOException {
-		Files.deleteIfExists(config.outputRootPath.resolve(".current"));
-		Logger.logInfo("Reset current output path.");
+	public Seed() {
+		super("seed", LongConverter, System.currentTimeMillis());
 	}
 
-	@Override
-	public String getName() {
-		return "eval-clean";
+	public Seed(long defaultValue) {
+		super("seed", LongConverter, defaultValue);
 	}
 
-	@Override
-	public String getDescription() {
-		return "Cleans current evaluation results";
-	}
 }
