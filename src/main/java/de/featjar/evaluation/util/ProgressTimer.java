@@ -23,7 +23,6 @@
 package de.featjar.evaluation.util;
 
 import de.featjar.util.logging.Logger;
-import de.featjar.util.logging.*;
 
 /**
  * @author Sebastian Krieter

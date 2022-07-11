@@ -22,11 +22,13 @@
  */
 package de.featjar.evaluation.streams;
 
-import java.io.*;
-import java.util.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.List;
 
 import de.featjar.util.logging.Logger;
-import de.featjar.util.logging.*;
 
 public class StreamRedirector implements Runnable {
 

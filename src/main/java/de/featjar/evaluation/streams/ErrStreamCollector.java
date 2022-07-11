@@ -22,7 +22,8 @@
  */
 package de.featjar.evaluation.streams;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ErrStreamCollector implements IOutputReader {
 

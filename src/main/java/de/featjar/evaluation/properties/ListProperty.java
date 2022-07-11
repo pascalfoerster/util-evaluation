@@ -22,8 +22,10 @@
  */
 package de.featjar.evaluation.properties;
 
-import java.util.*;
-import java.util.function.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
 
 public class ListProperty<T> extends Property<List<T>> {
 

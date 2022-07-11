@@ -22,11 +22,12 @@
  */
 package de.featjar.evaluation.process;
 
-import java.io.*;
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import de.featjar.evaluation.streams.IOutputReader;
-import de.featjar.evaluation.streams.*;
 
 public abstract class Algorithm<R> implements IOutputReader {
 

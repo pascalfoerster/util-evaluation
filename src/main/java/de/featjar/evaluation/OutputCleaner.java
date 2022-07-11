@@ -22,11 +22,10 @@
  */
 package de.featjar.evaluation;
 
-import java.io.*;
-import java.nio.file.*;
+import java.io.IOException;
+import java.nio.file.Files;
 
 import de.featjar.util.logging.Logger;
-import de.featjar.util.logging.*;
 
 public class OutputCleaner extends Evaluator {
 

@@ -22,21 +22,21 @@
  */
 package de.featjar.evaluation.util;
 
-import java.io.*;
-import java.net.*;
-import java.nio.file.*;
-import java.nio.file.DirectoryStream.*;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.DirectoryStream;
+import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileSystem;
-import java.util.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Iterator;
 
 import de.featjar.util.data.Result;
 import de.featjar.util.io.IO;
 import de.featjar.util.io.format.FormatSupplier;
 import de.featjar.util.logging.Logger;
-import de.featjar.util.data.*;
-import de.featjar.util.io.*;
-import de.featjar.util.io.format.*;
-import de.featjar.util.logging.*;
 
 /**
  * @author Sebastian Krieter

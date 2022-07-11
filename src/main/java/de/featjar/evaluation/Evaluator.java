@@ -22,11 +22,17 @@
  */
 package de.featjar.evaluation;
 
-import java.io.*;
-import java.nio.file.*;
-import java.nio.file.attribute.*;
-import java.util.*;
-import java.util.function.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.function.Consumer;
 
 import de.featjar.evaluation.properties.Property;
 import de.featjar.util.cli.CLIFunction;
@@ -34,10 +40,6 @@ import de.featjar.util.io.csv.CSVWriter;
 import de.featjar.util.logging.Logger;
 import de.featjar.util.logging.TabFormatter;
 import de.featjar.util.logging.TimeStampFormatter;
-import de.featjar.evaluation.properties.*;
-import de.featjar.util.cli.*;
-import de.featjar.util.io.csv.*;
-import de.featjar.util.logging.*;
 
 /**
  * @author Sebastian Krieter

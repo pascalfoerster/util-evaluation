@@ -22,21 +22,23 @@
  */
 package de.featjar.evaluation;
 
-import java.io.*;
-import java.nio.file.*;
-import java.sql.*;
-import java.text.*;
-import java.util.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Properties;
 
 import de.featjar.evaluation.properties.Property;
 import de.featjar.evaluation.properties.Seed;
 import de.featjar.util.io.IO;
 import de.featjar.util.io.namelist.NameListFormat;
 import de.featjar.util.logging.Logger;
-import de.featjar.evaluation.properties.*;
-import de.featjar.util.io.*;
-import de.featjar.util.io.namelist.*;
-import de.featjar.util.logging.*;
 
 /**
  * @author Sebastian Krieter
