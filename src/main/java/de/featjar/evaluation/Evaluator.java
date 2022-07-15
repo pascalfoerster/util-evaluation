@@ -128,10 +128,16 @@ public abstract class Evaluator implements CLIFunction {
 
 	private void installLogger() throws FileNotFoundException {
 		Logger.setErrLog(Logger.LogType.ERROR);
-		if (config.verbosity.getValue() > 0) {
-			Logger.setOutLog(Logger.LogType.INFO, Logger.LogType.DEBUG, Logger.LogType.PROGRESS);
-		} else {
+		switch (config.verbosity.getValue()) {
+		case 0:
+			Logger.setOutLog(Logger.LogType.INFO);
+			break;
+		case 1:
 			Logger.setOutLog(Logger.LogType.INFO, Logger.LogType.DEBUG);
+			break;
+		case 2:
+			Logger.setOutLog(Logger.LogType.INFO, Logger.LogType.DEBUG, Logger.LogType.PROGRESS);
+			break;
 		}
 		if (config.logPath != null) {
 			final Path outLogFile = config.logPath.resolve("output.log");
