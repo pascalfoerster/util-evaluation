@@ -1,9 +1,5 @@
-bin/
-results/
-output/
-models/
-target/
-.settings/
-.project
-.classpath
-
+.gradle
+/build/
+/.idea/
+/.project
+/.classpath
