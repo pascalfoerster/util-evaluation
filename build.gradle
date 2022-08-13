@@ -5,3 +5,10 @@ plugins {
 dependencies {
     api 'de.featjar:util'
 }
+
+license {
+    ext {
+        author = 'Sebastian Krieter'
+        url = 'https://github.com/FeatJAR/evaluation'
+    }
+}
