@@ -20,26 +20,25 @@
  */
 package de.featjar.evaluation;
 
+import de.featjar.util.logging.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import de.featjar.util.logging.Logger;
-
 public class OutputCleaner extends Evaluator {
 
-	@Override
-	public void evaluate() throws IOException {
-		Files.deleteIfExists(config.outputRootPath.resolve(".current"));
-		Logger.logInfo("Reset current output path.");
-	}
+    @Override
+    public void evaluate() throws IOException {
+        Files.deleteIfExists(config.outputRootPath.resolve(".current"));
+        Logger.logInfo("Reset current output path.");
+    }
 
-	@Override
-	public String getName() {
-		return "eval-clean";
-	}
+    @Override
+    public String getName() {
+        return "eval-clean";
+    }
 
-	@Override
-	public String getDescription() {
-		return "Cleans current evaluation results";
-	}
+    @Override
+    public String getDescription() {
+        return "Cleans current evaluation results";
+    }
 }

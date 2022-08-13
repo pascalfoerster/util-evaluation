@@ -24,9 +24,8 @@ import de.featjar.util.logging.Logger;
 
 public class ErrStreamReader implements IOutputReader {
 
-	@Override
-	public void readOutput(String line) throws Exception {
-		Logger.logError(line);
-	}
-
+    @Override
+    public void readOutput(String line) throws Exception {
+        Logger.logError(line);
+    }
 }

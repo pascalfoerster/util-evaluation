@@ -22,6 +22,5 @@ package de.featjar.evaluation.streams;
 
 public interface IOutputReader {
 
-	void readOutput(String line) throws Exception;
-
+    void readOutput(String line) throws Exception;
 }

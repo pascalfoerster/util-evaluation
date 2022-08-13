@@ -22,8 +22,7 @@ package de.featjar.evaluation.properties;
 
 public class Timeout extends Property<Long> {
 
-	public Timeout() {
-		super("timeout", LongConverter);
-	}
-
+    public Timeout() {
+        super("timeout", LongConverter);
+    }
 }
