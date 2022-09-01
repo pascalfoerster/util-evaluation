@@ -24,7 +24,7 @@ import de.featjar.evaluation.properties.Property;
 import de.featjar.util.cli.CLIFunction;
 import de.featjar.util.io.csv.CSVWriter;
 import de.featjar.util.logging.Logger;
-import de.featjar.util.logging.TabFormatter;
+import de.featjar.util.logging.IndentFormatter;
 import de.featjar.util.logging.TimeStampFormatter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -61,7 +61,7 @@ public abstract class Evaluator implements CLIFunction {
         }
     }
 
-    public final TabFormatter tabFormatter = new TabFormatter();
+    public final IndentFormatter indentFormatter = new IndentFormatter();
     protected EvaluatorConfig config;
 
     private final LinkedHashMap<String, CSVWriter> csvWriterList = new LinkedHashMap<>();
@@ -122,28 +122,27 @@ public abstract class Evaluator implements CLIFunction {
         }
     }
 
-    private void installLogger() throws FileNotFoundException {
-        Logger.setErrLog(Logger.LogType.ERROR);
-        switch (config.verbosity.getValue()) {
-            case 0:
-                Logger.setOutLog(Logger.LogType.INFO);
-                break;
-            case 1:
-                Logger.setOutLog(Logger.LogType.INFO, Logger.LogType.DEBUG);
-                break;
-            case 2:
-                Logger.setOutLog(Logger.LogType.INFO, Logger.LogType.DEBUG, Logger.LogType.PROGRESS);
-                break;
-        }
-        if (config.logPath != null) {
-            final Path outLogFile = config.logPath.resolve("output.log");
-            Logger.addFileLog(outLogFile, Logger.LogType.INFO, Logger.LogType.DEBUG);
-            final Path errLogFile = config.logPath.resolve("error.log");
-            Logger.addFileLog(errLogFile, Logger.LogType.ERROR);
-        }
-        Logger.addFormatter(new TimeStampFormatter());
-        Logger.addFormatter(tabFormatter);
-        Logger.install();
+    private void installLogger() {
+        Logger.install(cfg -> {
+            cfg.logToSystemErr(Logger.MessageType.ERROR);
+            switch (config.verbosity.getValue()) {
+                case 0:
+                    cfg.logToSystemOut(Logger.MessageType.INFO);
+                    break;
+                case 1:
+                    cfg.logToSystemOut(Logger.MessageType.INFO, Logger.MessageType.DEBUG);
+                    break;
+                case 2:
+                    cfg.logToSystemOut(Logger.MessageType.INFO, Logger.MessageType.DEBUG, Logger.MessageType.PROGRESS);
+                    break;
+            }
+            if (config.logPath != null) {
+                cfg.logToFile(config.logPath.resolve("output.log"), Logger.MessageType.INFO, Logger.MessageType.DEBUG);
+                cfg.logToFile(config.logPath.resolve("error.log"), Logger.MessageType.ERROR);
+            }
+            cfg.addFormatter(new TimeStampFormatter());
+            cfg.addFormatter(indentFormatter);
+        });
     }
 
     private void createDir(final Path path) throws IOException {
