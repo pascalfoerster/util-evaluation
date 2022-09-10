@@ -23,7 +23,7 @@ package de.featjar.evaluation;
 import de.featjar.evaluation.properties.Property;
 import de.featjar.evaluation.properties.Seed;
 import de.featjar.util.io.IO;
-import de.featjar.util.io.namelist.NameListFormat;
+import de.featjar.util.io.list.StringListFormat;
 import de.featjar.util.log.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -31,7 +31,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -59,7 +58,7 @@ public class EvaluatorConfig {
     public final Property<String> resourcesPathProperty =
             new Property<>("resources", Property.StringConverter, DEFAULT_RESOURCE_DIRECTORY);
 
-    public final Property<Boolean> append = new Property<>("append", Property.BooleanConverter);
+    public final Property<Boolean> append = new Property<>("append", Property.BooleanConverter); // todo remove
     public final Property<Integer> debug = new Property<>("debug", Property.IntegerConverter);
     public final Property<Integer> verbosity = new Property<>("verbosity", Property.IntegerConverter);
     public final Property<Long> timeout = new Property<>("timeout", Property.LongConverter, Long.MAX_VALUE);
@@ -78,7 +77,6 @@ public class EvaluatorConfig {
     public Path tempPath;
     public Path logPath;
     public List<String> systemNames;
-    public List<Integer> systemIDs;
 
     public static void addProperty(Property<?> property) {
         propertyList.add(property);
@@ -151,15 +149,8 @@ public class EvaluatorConfig {
     }
 
     public void readSystemNames() {
-        final List<NameListFormat.NameEntry> names = IO.load(configPath.resolve("models.txt"), new NameListFormat())
+        systemNames = IO.load(configPath.resolve("models.txt"), new StringListFormat())
                 .orElse(Collections.emptyList(), Logger::logProblems);
-        systemNames = new ArrayList<>(names.size());
-        systemIDs = new ArrayList<>(names.size());
-
-        for (final NameListFormat.NameEntry nameEntry : names) {
-            systemNames.add(nameEntry.getName());
-            systemIDs.add(nameEntry.getID());
-        }
     }
 
     private Properties readConfigFile(String configName) throws Exception {

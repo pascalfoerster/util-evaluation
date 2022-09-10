@@ -22,7 +22,7 @@ package de.featjar.evaluation;
 
 import de.featjar.evaluation.properties.Property;
 import de.featjar.util.cli.CLIFunction;
-import de.featjar.util.io.csv.CSVWriter;
+import de.featjar.util.io.csv.CSVFile;
 import de.featjar.util.log.Logger;
 import de.featjar.util.log.IndentFormatter;
 import de.featjar.util.log.TimeStampFormatter;
@@ -64,7 +64,7 @@ public abstract class Evaluator implements CLIFunction {
     public final IndentFormatter indentFormatter = new IndentFormatter();
     protected EvaluatorConfig config;
 
-    private final LinkedHashMap<String, CSVWriter> csvWriterList = new LinkedHashMap<>();
+    private final LinkedHashMap<String, CSVFile> csvWriterList = new LinkedHashMap<>();
 
     protected int systemIndex;
     protected int systemIteration;
@@ -91,7 +91,7 @@ public abstract class Evaluator implements CLIFunction {
 
         config.readSystemNames();
         addCSVWriters();
-        for (final CSVWriter writer : csvWriterList.values()) {
+        for (final CSVFile writer : csvWriterList.values()) {
             writer.flush();
         }
         Logger.logInfo("Running " + this.getClass().getSimpleName());
@@ -215,41 +215,39 @@ public abstract class Evaluator implements CLIFunction {
         Logger.logInfo(sb.toString());
     }
 
-    protected CSVWriter addCSVWriter(String fileName, List<String> csvHeader) {
-        final CSVWriter existingCSVWriter = csvWriterList.get(fileName);
-        if (existingCSVWriter == null) {
-            final CSVWriter csvWriter = new CSVWriter();
+    protected CSVFile addCSVWriter(String fileName, List<String> csvHeader) {
+        final CSVFile existingCSVFile = csvWriterList.get(fileName);
+        if (existingCSVFile == null) {
+            final CSVFile csvFile;
             try {
-                csvWriter.setOutputDirectory(config.csvPath);
-                csvWriter.setFileName(fileName);
+                csvFile = new CSVFile(config.csvPath.resolve(fileName));
             } catch (final IOException e) {
                 Logger.logError(e);
                 return null;
             }
-            csvWriter.setAppend(config.append.getValue());
-            csvWriter.setHeader(csvHeader);
-            csvWriterList.put(fileName, csvWriter);
-            return csvWriter;
+            csvFile.setHeaderFields(csvHeader);
+            csvWriterList.put(fileName, csvFile);
+            return csvFile;
         } else {
-            return existingCSVWriter;
+            return existingCSVFile;
         }
     }
 
     protected void extendCSVWriter(String fileName, List<String> csvHeader) {
-        final CSVWriter existingCSVWriter = csvWriterList.get(fileName);
-        if (existingCSVWriter != null) {
-            extendCSVWriter(existingCSVWriter, csvHeader);
+        final CSVFile existingCSVFile = csvWriterList.get(fileName);
+        if (existingCSVFile != null) {
+            extendCSVWriter(existingCSVFile, csvHeader);
         }
     }
 
-    protected void extendCSVWriter(CSVWriter writer, List<String> csvHeader) {
+    protected void extendCSVWriter(CSVFile writer, List<String> csvHeader) {
         for (final String headerValue : csvHeader) {
-            writer.addHeaderValue(headerValue);
+            writer.addHeaderField(headerValue);
         }
     }
 
-    protected final void writeCSV(CSVWriter writer, Consumer<CSVWriter> writing) {
-        writer.createNewLine();
+    protected final void writeCSV(CSVFile writer, Consumer<CSVFile> writing) {
+        writer.newLine();
         try {
             writing.accept(writer);
         } catch (final Exception e) {
