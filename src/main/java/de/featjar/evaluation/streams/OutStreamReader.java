@@ -20,7 +20,7 @@
  */
 package de.featjar.evaluation.streams;
 
-import de.featjar.util.logging.Logger;
+import de.featjar.util.log.Logger;
 
 public class OutStreamReader implements IOutputReader {
 

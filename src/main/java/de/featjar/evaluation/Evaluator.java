@@ -23,10 +23,10 @@ package de.featjar.evaluation;
 import de.featjar.evaluation.properties.Property;
 import de.featjar.util.cli.CLIFunction;
 import de.featjar.util.io.csv.CSVWriter;
-import de.featjar.util.logging.Logger;
-import de.featjar.util.logging.IndentFormatter;
-import de.featjar.util.logging.TimeStampFormatter;
-import java.io.FileNotFoundException;
+import de.featjar.util.log.Logger;
+import de.featjar.util.log.IndentFormatter;
+import de.featjar.util.log.TimeStampFormatter;
+
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;

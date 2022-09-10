@@ -24,7 +24,7 @@ import de.featjar.evaluation.properties.Property;
 import de.featjar.evaluation.properties.Seed;
 import de.featjar.util.io.IO;
 import de.featjar.util.io.namelist.NameListFormat;
-import de.featjar.util.logging.Logger;
+import de.featjar.util.log.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
