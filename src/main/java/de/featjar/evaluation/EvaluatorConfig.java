@@ -22,9 +22,9 @@ package de.featjar.evaluation;
 
 import de.featjar.evaluation.properties.Property;
 import de.featjar.evaluation.properties.Seed;
-import de.featjar.util.io.IO;
-import de.featjar.util.io.list.StringListFormat;
-import de.featjar.util.log.Log;
+import de.featjar.base.io.IO;
+import de.featjar.base.io.list.StringListFormat;
+import de.featjar.base.log.Log;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

@@ -20,8 +20,6 @@
  */
 package de.featjar.evaluation.streams;
 
-import de.featjar.util.log.Log;
-
 public class OutStreamReader implements IOutputReader {
 
     @Override

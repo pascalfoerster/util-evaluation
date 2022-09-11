@@ -20,10 +20,10 @@
  */
 package de.featjar.evaluation.util;
 
-import de.featjar.util.data.Result;
-import de.featjar.util.io.IO;
-import de.featjar.util.io.format.FormatSupplier;
-import de.featjar.util.log.Log;
+import de.featjar.base.data.Result;
+import de.featjar.base.io.IO;
+import de.featjar.base.io.format.FormatSupplier;
+import de.featjar.base.log.Log;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.DirectoryStream;

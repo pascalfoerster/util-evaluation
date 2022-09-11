@@ -20,7 +20,6 @@
  */
 package de.featjar.evaluation;
 
-import de.featjar.util.log.Log;
 import java.io.IOException;
 import java.nio.file.Files;
 

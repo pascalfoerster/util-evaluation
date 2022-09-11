@@ -21,11 +21,11 @@
 package de.featjar.evaluation;
 
 import de.featjar.evaluation.properties.Property;
-import de.featjar.util.cli.Command;
-import de.featjar.util.io.csv.CSVFile;
-import de.featjar.util.log.Log;
-import de.featjar.util.log.IndentFormatter;
-import de.featjar.util.log.TimeStampFormatter;
+import de.featjar.base.cli.Command;
+import de.featjar.base.io.csv.CSVFile;
+import de.featjar.base.log.Log;
+import de.featjar.base.log.IndentFormatter;
+import de.featjar.base.log.TimeStampFormatter;
 
 import java.io.IOException;
 import java.nio.file.FileVisitResult;

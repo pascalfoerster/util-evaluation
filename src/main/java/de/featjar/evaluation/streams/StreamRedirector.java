@@ -20,7 +20,6 @@
  */
 package de.featjar.evaluation.streams;
 
-import de.featjar.util.log.Log;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

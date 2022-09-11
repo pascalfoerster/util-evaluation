@@ -20,8 +20,6 @@
  */
 package de.featjar.evaluation.util;
 
-import de.featjar.util.log.Log;
-
 /**
  * @author Sebastian Krieter
  */

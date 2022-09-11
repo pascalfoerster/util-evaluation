@@ -24,7 +24,7 @@ import de.featjar.evaluation.streams.ErrStreamCollector;
 import de.featjar.evaluation.streams.ErrStreamReader;
 import de.featjar.evaluation.streams.OutStreamReader;
 import de.featjar.evaluation.streams.StreamRedirector;
-import de.featjar.util.log.Log;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
