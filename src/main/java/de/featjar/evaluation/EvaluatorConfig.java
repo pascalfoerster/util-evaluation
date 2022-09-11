@@ -24,7 +24,7 @@ import de.featjar.evaluation.properties.Property;
 import de.featjar.evaluation.properties.Seed;
 import de.featjar.util.io.IO;
 import de.featjar.util.io.list.StringListFormat;
-import de.featjar.util.log.Logger;
+import de.featjar.util.log.Log;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -127,14 +127,14 @@ public class EvaluatorConfig {
                     currentOutputMarker = firstLine.trim();
                 }
             } catch (final Exception e) {
-                Logger.logError(e);
+                Feat.log().error(e);
             }
         }
 
         try {
             Files.createDirectories(outputRootPath);
         } catch (final IOException e) {
-            Logger.logError(e);
+            Feat.log().error(e);
         }
 
         if (currentOutputMarker == null) {
@@ -142,7 +142,7 @@ public class EvaluatorConfig {
             try {
                 Files.write(currentOutputMarkerFile, currentOutputMarker.getBytes());
             } catch (final IOException e) {
-                Logger.logError(e);
+                Feat.log().error(e);
             }
         }
         return currentOutputMarker;
@@ -150,12 +150,12 @@ public class EvaluatorConfig {
 
     public void readSystemNames() {
         systemNames = IO.load(configPath.resolve("models.txt"), new StringListFormat())
-                .orElse(Collections.emptyList(), Logger::logProblems);
+                .orElse(Collections.emptyList(), Log::problems);
     }
 
     private Properties readConfigFile(String configName) throws Exception {
         final Path path = configPath.resolve(configName + ".properties");
-        Logger.logInfo("Reading config file. (" + path.toString() + ") ... ");
+        Feat.log().info("Reading config file. (" + path.toString() + ") ... ");
         final Properties properties = new Properties();
         try {
             properties.load(Files.newInputStream(path));
@@ -165,11 +165,11 @@ public class EvaluatorConfig {
                     prop.setValue(value);
                 }
             }
-            Logger.logInfo("Success!");
+            Feat.log().info("Success!");
             return properties;
         } catch (final IOException e) {
-            Logger.logInfo("Fail! -> " + e.getMessage());
-            Logger.logError(e);
+            Feat.log().info("Fail! -> " + e.getMessage());
+            Feat.log().error(e);
             throw e;
         }
     }

@@ -20,7 +20,7 @@
  */
 package de.featjar.evaluation.util;
 
-import de.featjar.util.log.Logger;
+import de.featjar.util.log.Log;
 
 /**
  * @author Sebastian Krieter
@@ -73,7 +73,7 @@ public class ProgressTimer {
     private void printTime() {
         if (verbose) {
             final double timeDiff = (lastTime / 1_0000_00L) / 1_000.0;
-            Logger.logInfo("Time: " + timeDiff + "s");
+            Feat.log().info("Time: " + timeDiff + "s");
         }
     }
 

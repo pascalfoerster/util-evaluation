@@ -20,7 +20,7 @@
  */
 package de.featjar.evaluation;
 
-import de.featjar.util.log.Logger;
+import de.featjar.util.log.Log;
 import java.io.IOException;
 import java.nio.file.Files;
 
@@ -29,7 +29,7 @@ public class OutputCleaner extends Evaluator {
     @Override
     public void evaluate() throws IOException {
         Files.deleteIfExists(config.outputRootPath.resolve(".current"));
-        Logger.logInfo("Reset current output path.");
+        Feat.log().info("Reset current output path.");
     }
 
     @Override

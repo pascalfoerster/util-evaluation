@@ -21,9 +21,9 @@
 package de.featjar.evaluation;
 
 import de.featjar.evaluation.properties.Property;
-import de.featjar.util.cli.CLIFunction;
+import de.featjar.util.cli.Command;
 import de.featjar.util.io.csv.CSVFile;
-import de.featjar.util.log.Logger;
+import de.featjar.util.log.Log;
 import de.featjar.util.log.IndentFormatter;
 import de.featjar.util.log.TimeStampFormatter;
 
@@ -41,7 +41,7 @@ import java.util.function.Consumer;
 /**
  * @author Sebastian Krieter
  */
-public abstract class Evaluator implements CLIFunction {
+public abstract class Evaluator implements Command {
 
     @Override
     public void run(List<String> args) {
@@ -49,13 +49,13 @@ public abstract class Evaluator implements CLIFunction {
             System.out.println("Configuration path not specified!");
             return;
         }
-        Logger.logInfo(System.getProperty("user.dir"));
+        Feat.log().info(System.getProperty("user.dir"));
         try {
             init(args.get(0), args.size() > 1 ? args.get(1) : "config");
             printConfigFile();
             evaluate();
         } catch (final Exception e) {
-            Logger.logError(e);
+            Feat.log().error(e);
         } finally {
             dispose();
         }
@@ -77,15 +77,15 @@ public abstract class Evaluator implements CLIFunction {
         try {
             setupDirectories();
         } catch (final IOException e) {
-            Logger.logError("Fail -> Could not create output directory.");
-            Logger.logError(e);
+            Feat.log().error("Fail -> Could not create output directory.");
+            Feat.log().error(e);
             throw e;
         }
         try {
             installLogger();
         } catch (final Exception e) {
-            Logger.logError("Fail -> Could not install logger.");
-            Logger.logError(e);
+            Feat.log().error("Fail -> Could not install logger.");
+            Feat.log().error(e);
             throw e;
         }
 
@@ -94,7 +94,7 @@ public abstract class Evaluator implements CLIFunction {
         for (final CSVFile writer : csvWriterList.values()) {
             writer.flush();
         }
-        Logger.logInfo("Running " + this.getClass().getSimpleName());
+        Feat.log().info("Running " + this.getClass().getSimpleName());
     }
 
     protected void initPaths() {
@@ -116,29 +116,29 @@ public abstract class Evaluator implements CLIFunction {
             createDir(config.tempPath);
             createDir(config.logPath);
         } catch (final IOException e) {
-            Logger.logError("Could not create output directory.");
-            Logger.logError(e);
+            Feat.log().error("Could not create output directory.");
+            Feat.log().error(e);
             throw e;
         }
     }
 
     private void installLogger() {
-        Logger.install(cfg -> {
-            cfg.logToSystemErr(Logger.MessageType.ERROR);
+        Log.install(cfg -> {
+            cfg.logToSystemErr(Log.Verbosity.ERROR);
             switch (config.verbosity.getValue()) {
                 case 0:
-                    cfg.logToSystemOut(Logger.MessageType.INFO);
+                    cfg.logToSystemOut(Log.Verbosity.INFO);
                     break;
                 case 1:
-                    cfg.logToSystemOut(Logger.MessageType.INFO, Logger.MessageType.DEBUG);
+                    cfg.logToSystemOut(Log.Verbosity.INFO, Log.Verbosity.DEBUG);
                     break;
                 case 2:
-                    cfg.logToSystemOut(Logger.MessageType.INFO, Logger.MessageType.DEBUG, Logger.MessageType.PROGRESS);
+                    cfg.logToSystemOut(Log.Verbosity.INFO, Log.Verbosity.DEBUG, Log.Verbosity.PROGRESS);
                     break;
             }
             if (config.logPath != null) {
-                cfg.logToFile(config.logPath.resolve("output.log"), Logger.MessageType.INFO, Logger.MessageType.DEBUG);
-                cfg.logToFile(config.logPath.resolve("error.log"), Logger.MessageType.ERROR);
+                cfg.logToFile(config.logPath.resolve("output.log"), Log.Verbosity.INFO, Log.Verbosity.DEBUG);
+                cfg.logToFile(config.logPath.resolve("error.log"), Log.Verbosity.ERROR);
             }
             cfg.addFormatter(new TimeStampFormatter());
             cfg.addFormatter(indentFormatter);
@@ -154,7 +154,7 @@ public abstract class Evaluator implements CLIFunction {
     protected void addCSVWriters() {}
 
     public void dispose() {
-        Logger.uninstall();
+        Log.uninstall();
         if (config.debug.getValue() == 0) {
             deleteTempFolder();
         }
@@ -184,7 +184,7 @@ public abstract class Evaluator implements CLIFunction {
 
     private void printConfigFile() {
         for (final Property<?> prop : EvaluatorConfig.propertyList) {
-            Logger.logInfo(prop.toString());
+            Feat.log().info(prop.toString());
         }
     }
 
@@ -197,7 +197,7 @@ public abstract class Evaluator implements CLIFunction {
         sb.append("/");
         sb.append(config.systemNames.size());
         sb.append(")");
-        Logger.logInfo(sb.toString());
+        Feat.log().info(sb.toString());
     }
 
     protected void logSystemRun() {
@@ -212,7 +212,7 @@ public abstract class Evaluator implements CLIFunction {
         sb.append(systemIteration + 1);
         sb.append("/");
         sb.append(config.systemIterations.getValue());
-        Logger.logInfo(sb.toString());
+        Feat.log().info(sb.toString());
     }
 
     protected CSVFile addCSVWriter(String fileName, List<String> csvHeader) {
@@ -222,7 +222,7 @@ public abstract class Evaluator implements CLIFunction {
             try {
                 csvFile = new CSVFile(config.csvPath.resolve(fileName));
             } catch (final IOException e) {
-                Logger.logError(e);
+                Feat.log().error(e);
                 return null;
             }
             csvFile.setHeaderFields(csvHeader);

@@ -20,12 +20,12 @@
  */
 package de.featjar.evaluation.streams;
 
-import de.featjar.util.log.Logger;
+import de.featjar.util.log.Log;
 
 public class ErrStreamReader implements IOutputReader {
 
     @Override
     public void readOutput(String line) throws Exception {
-        Logger.logError(line);
+        Feat.log().error(line);
     }
 }

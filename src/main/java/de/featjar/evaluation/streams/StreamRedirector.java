@@ -20,7 +20,7 @@
  */
 package de.featjar.evaluation.streams;
 
-import de.featjar.util.log.Logger;
+import de.featjar.util.log.Log;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,7 +52,7 @@ public class StreamRedirector implements Runnable {
                 }
             }
         } catch (final IOException e) {
-            Logger.logError(e);
+            Feat.log().error(e);
         }
     }
 }

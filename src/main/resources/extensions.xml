@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <extensions>
-	<point id="de.featjar.util.cli.CLIFunctions">
+	<point id="de.featjar.util.cli.Commands">
 	    <extension id="de.featjar.evaluation.OutputCleaner" />
 	</point>
 </extensions>

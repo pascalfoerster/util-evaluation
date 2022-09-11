@@ -24,7 +24,7 @@ import de.featjar.evaluation.streams.ErrStreamCollector;
 import de.featjar.evaluation.streams.ErrStreamReader;
 import de.featjar.evaluation.streams.OutStreamReader;
 import de.featjar.evaluation.streams.StreamRedirector;
-import de.featjar.util.log.Logger;
+import de.featjar.util.log.Log;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -42,7 +42,7 @@ public class ProcessRunner {
             System.gc();
             algorithm.preProcess();
 
-            Logger.logInfo(algorithm.getCommand());
+            Feat.log().info(algorithm.getCommand());
 
             final List<String> command = algorithm.getCommandElements();
             if (!command.isEmpty()) {
@@ -75,16 +75,16 @@ public class ProcessRunner {
                     if (process != null) {
                         process.destroyForcibly();
                     }
-                    Logger.logInfo("In time: " + terminatedInTime + ", no error: " + noError);
+                    Feat.log().info("In time: " + terminatedInTime + ", no error: " + noError);
                 }
             } else {
                 result.setTerminatedInTime(false);
                 result.setNoError(false);
                 result.setTime(Result.INVALID_TIME);
-                Logger.logInfo("Invalid command");
+                Feat.log().info("Invalid command");
             }
         } catch (final Exception e) {
-            Logger.logError(e);
+            Feat.log().error(e);
             result.setTerminatedInTime(false);
             result.setNoError(false);
             result.setTime(Result.INVALID_TIME);
@@ -92,7 +92,7 @@ public class ProcessRunner {
         try {
             result.setResult(algorithm.parseResults());
         } catch (final Exception e) {
-            Logger.logError(e);
+            Feat.log().error(e);
             if (terminatedInTime) {
                 result.setNoError(false);
             }
@@ -100,7 +100,7 @@ public class ProcessRunner {
         try {
             algorithm.postProcess();
         } catch (final Exception e) {
-            Logger.logError(e);
+            Feat.log().error(e);
         }
         return result;
     }
