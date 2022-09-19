@@ -18,26 +18,12 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.evaluation;
+package de.featjar.util.evaluation.streams;
 
-import java.io.IOException;
-import java.nio.file.Files;
-
-public class OutputCleaner extends Evaluator {
+public class ErrStreamReader implements IOutputReader {
 
     @Override
-    public void evaluate() throws IOException {
-        Files.deleteIfExists(config.outputRootPath.resolve(".current"));
-        Feat.log().info("Reset current output path.");
-    }
-
-    @Override
-    public String getName() {
-        return "eval-clean";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Cleans current evaluation results";
+    public void readOutput(String line) throws Exception {
+        Feat.log().error(line);
     }
 }

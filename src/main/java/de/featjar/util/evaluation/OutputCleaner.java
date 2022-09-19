@@ -18,15 +18,26 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.evaluation.properties;
+package de.featjar.util.evaluation;
 
-public class Seed extends Property<Long> {
+import java.io.IOException;
+import java.nio.file.Files;
 
-    public Seed() {
-        super("seed", LongConverter, System.currentTimeMillis());
+public class OutputCleaner extends Evaluator {
+
+    @Override
+    public void evaluate() throws IOException {
+        Files.deleteIfExists(config.outputRootPath.resolve(".current"));
+        Feat.log().info("Reset current output path.");
     }
 
-    public Seed(long defaultValue) {
-        super("seed", LongConverter, defaultValue);
+    @Override
+    public String getName() {
+        return "eval-clean";
+    }
+
+    @Override
+    public String getDescription() {
+        return "Cleans current evaluation results";
     }
 }

@@ -18,7 +18,7 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.evaluation.properties;
+package de.featjar.util.evaluation.properties;
 
 public class Timeout extends Property<Long> {
 

@@ -18,12 +18,21 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.evaluation.streams;
+package de.featjar.util.evaluation.streams;
 
-public class ErrStreamReader implements IOutputReader {
+import java.util.ArrayList;
+import java.util.List;
+
+public class ErrStreamCollector implements IOutputReader {
+
+    private final List<String> errList = new ArrayList<>();
 
     @Override
     public void readOutput(String line) throws Exception {
-        Feat.log().error(line);
+        errList.add(line);
+    }
+
+    public List<String> getErrList() {
+        return errList;
     }
 }

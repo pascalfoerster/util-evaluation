@@ -18,12 +18,12 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.evaluation.process;
+package de.featjar.util.evaluation.process;
 
-import de.featjar.evaluation.streams.ErrStreamCollector;
-import de.featjar.evaluation.streams.ErrStreamReader;
-import de.featjar.evaluation.streams.OutStreamReader;
-import de.featjar.evaluation.streams.StreamRedirector;
+import de.featjar.util.evaluation.streams.ErrStreamCollector;
+import de.featjar.util.evaluation.streams.ErrStreamReader;
+import de.featjar.util.evaluation.streams.OutStreamReader;
+import de.featjar.util.evaluation.streams.StreamRedirector;
 
 import java.util.Arrays;
 import java.util.List;

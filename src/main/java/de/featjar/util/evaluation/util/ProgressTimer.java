@@ -18,7 +18,7 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.evaluation.util;
+package de.featjar.util.evaluation.util;
 
 /**
  * @author Sebastian Krieter

@@ -18,9 +18,10 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.evaluation.process;
+package de.featjar.util.evaluation.process;
 
-import de.featjar.evaluation.streams.IOutputReader;
+import de.featjar.util.evaluation.streams.IOutputReader;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

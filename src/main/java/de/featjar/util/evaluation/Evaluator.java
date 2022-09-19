@@ -18,9 +18,9 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.evaluation;
+package de.featjar.util.evaluation;
 
-import de.featjar.evaluation.properties.Property;
+import de.featjar.util.evaluation.properties.Property;
 import de.featjar.base.cli.Command;
 import de.featjar.base.io.csv.CSVFile;
 import de.featjar.base.log.Log;

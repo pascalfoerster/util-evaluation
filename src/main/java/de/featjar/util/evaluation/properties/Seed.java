@@ -18,9 +18,15 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.evaluation.streams;
+package de.featjar.util.evaluation.properties;
 
-public interface IOutputReader {
+public class Seed extends Property<Long> {
 
-    void readOutput(String line) throws Exception;
+    public Seed() {
+        super("seed", LongConverter, System.currentTimeMillis());
+    }
+
+    public Seed(long defaultValue) {
+        super("seed", LongConverter, defaultValue);
+    }
 }

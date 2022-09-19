@@ -18,7 +18,7 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.evaluation.streams;
+package de.featjar.util.evaluation.streams;
 
 import java.io.BufferedReader;
 import java.io.IOException;

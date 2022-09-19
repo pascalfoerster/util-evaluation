@@ -18,9 +18,9 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.evaluation.properties;
+package de.featjar.util.evaluation.properties;
 
-import de.featjar.evaluation.EvaluatorConfig;
+import de.featjar.util.evaluation.EvaluatorConfig;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;

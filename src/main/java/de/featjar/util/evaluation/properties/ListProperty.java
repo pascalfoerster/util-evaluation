@@ -18,46 +18,20 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.evaluation.process;
+package de.featjar.util.evaluation.properties;
 
-public class Result<R> {
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
 
-    public static long INVALID_TIME = -1;
+public class ListProperty<T> extends Property<List<T>> {
 
-    private boolean terminatedInTime = false;
-    private boolean noError = false;
-    private long time = INVALID_TIME;
-    private R result = null;
-
-    public boolean isTerminatedInTime() {
-        return terminatedInTime;
+    public ListProperty(String name, Function<String, T> converter) {
+        super(name, parseList(converter), Collections.emptyList());
     }
 
-    public void setTerminatedInTime(boolean terminatedInTime) {
-        this.terminatedInTime = terminatedInTime;
-    }
-
-    public boolean isNoError() {
-        return noError;
-    }
-
-    public void setNoError(boolean noError) {
-        this.noError = noError;
-    }
-
-    public long getTime() {
-        return time;
-    }
-
-    public void setTime(long time) {
-        this.time = time;
-    }
-
-    public R getResult() {
-        return result;
-    }
-
-    public void setResult(R result) {
-        this.result = result;
+    public ListProperty(String name, Function<String, T> converter, T defaultValue) {
+        super(name, parseList(converter), Arrays.asList(defaultValue));
     }
 }
