@@ -20,6 +20,7 @@
  */
 package de.featjar.util.evaluation;
 
+import de.featjar.base.Feat;
 import de.featjar.util.evaluation.properties.Property;
 import de.featjar.base.cli.Command;
 import de.featjar.base.io.csv.CSVFile;
@@ -122,26 +123,26 @@ public abstract class Evaluator implements Command {
         }
     }
 
-    private void installLogger() {
-        Log.install(cfg -> {
-            cfg.logToSystemErr(Log.Verbosity.ERROR);
+    private void installLogger() { // todo: use CommandLine.configureVerbosity
+        Feat.install(cfg -> {
+            cfg.log.logToSystemErr(Log.Verbosity.ERROR);
             switch (config.verbosity.getValue()) {
                 case 0:
-                    cfg.logToSystemOut(Log.Verbosity.INFO);
+                    cfg.log.logToSystemOut(Log.Verbosity.INFO);
                     break;
                 case 1:
-                    cfg.logToSystemOut(Log.Verbosity.INFO, Log.Verbosity.DEBUG);
+                    cfg.log.logToSystemOut(Log.Verbosity.INFO, Log.Verbosity.DEBUG);
                     break;
                 case 2:
-                    cfg.logToSystemOut(Log.Verbosity.INFO, Log.Verbosity.DEBUG, Log.Verbosity.PROGRESS);
+                    cfg.log.logToSystemOut(Log.Verbosity.INFO, Log.Verbosity.DEBUG, Log.Verbosity.PROGRESS);
                     break;
             }
             if (config.logPath != null) {
-                cfg.logToFile(config.logPath.resolve("output.log"), Log.Verbosity.INFO, Log.Verbosity.DEBUG);
-                cfg.logToFile(config.logPath.resolve("error.log"), Log.Verbosity.ERROR);
+                cfg.log.logToFile(config.logPath.resolve("output.log"), Log.Verbosity.INFO, Log.Verbosity.DEBUG);
+                cfg.log.logToFile(config.logPath.resolve("error.log"), Log.Verbosity.ERROR);
             }
-            cfg.addFormatter(new TimeStampFormatter());
-            cfg.addFormatter(indentFormatter);
+            cfg.log.addFormatter(new TimeStampFormatter());
+            cfg.log.addFormatter(indentFormatter);
         });
     }
 
