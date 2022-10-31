@@ -155,7 +155,7 @@ public abstract class Evaluator implements Command {
     protected void addCSVWriters() {}
 
     public void dispose() {
-        Log.uninstall();
+        Feat.log().uninstall();
         if (config.debug.getValue() == 0) {
             deleteTempFolder();
         }

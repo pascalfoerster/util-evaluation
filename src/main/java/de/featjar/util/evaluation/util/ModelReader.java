@@ -20,6 +20,7 @@
  */
 package de.featjar.util.evaluation.util;
 
+import de.featjar.base.Feat;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
 import de.featjar.base.io.format.FormatSupplier;
@@ -161,6 +162,6 @@ public class ModelReader<T> {
     }
 
     public void dispose() {
-        Log.uninstall();
+        Feat.log().uninstall();
     }
 }
