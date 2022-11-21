@@ -47,7 +47,7 @@ public abstract class Evaluator implements Command {
     @Override
     public void run(List<String> args) {
         if (args.size() < 1) {
-            System.out.println("Configuration path not specified!");
+            Feat.log().info("Configuration path not specified!");
             return;
         }
         Feat.log().info(System.getProperty("user.dir"));
