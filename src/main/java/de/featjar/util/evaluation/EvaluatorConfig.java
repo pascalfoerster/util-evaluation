@@ -59,7 +59,7 @@ public class EvaluatorConfig {
     public final Property<String> resourcesPathProperty =
             new Property<>("resources", Property.StringConverter, DEFAULT_RESOURCE_DIRECTORY);
 
-    public final Property<Boolean> append = new Property<>("append", Property.BooleanConverter); // todo remove
+    public final Property<Boolean> append = new Property<>("append", Property.BooleanConverter); // TODO remove
     public final Property<Integer> debug = new Property<>("debug", Property.IntegerConverter);
     public final Property<Integer> verbosity = new Property<>("verbosity", Property.IntegerConverter);
     public final Property<Long> timeout = new Property<>("timeout", Property.LongConverter, Long.MAX_VALUE);

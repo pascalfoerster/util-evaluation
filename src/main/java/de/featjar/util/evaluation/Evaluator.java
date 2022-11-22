@@ -123,7 +123,7 @@ public abstract class Evaluator implements Command {
         }
     }
 
-    private void installLogger() { // todo: use CommandLine.configureVerbosity
+    private void installLogger() { // TODO: use CommandLine.configureVerbosity
         Feat.install(cfg -> {
             cfg.log.logToSystemErr(Log.Verbosity.ERROR);
             switch (config.verbosity.getValue()) {
