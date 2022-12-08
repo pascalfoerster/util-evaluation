@@ -110,6 +110,8 @@ public class ModelReader<T> {
         Result<T> loadedFm = loadFile(rootPath.resolve(name));
         if (loadedFm.isPresent()) {
             return loadedFm;
+        } else {
+            Logger.logProblems(loadedFm.getProblems());
         }
         final Filter<Path> fileFilter = file -> Files.isReadable(file)
                 && Files.isRegularFile(file)

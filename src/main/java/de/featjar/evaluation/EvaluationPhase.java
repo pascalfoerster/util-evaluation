@@ -20,25 +20,18 @@
  */
 package de.featjar.evaluation;
 
-import de.featjar.util.logging.Logger;
-import java.io.IOException;
-import java.nio.file.Files;
+import de.featjar.util.extension.Extension;
 
 /**
  * TODO documentation
  *
  * @author Sebastian Krieter
  */
-public class OutputCleaner implements EvaluationPhase {
+public interface EvaluationPhase extends Extension {
 
-    @Override
-    public void run(Evaluator evaluator) throws IOException {
-        Files.deleteIfExists(evaluator.outputRootPath.resolve(".current"));
-        Logger.logInfo("Reset current output path.");
+    default String getName() {
+        return getIdentifier();
     }
 
-    @Override
-    public String getName() {
-        return "clean";
-    }
+    void run(Evaluator evaluator) throws Exception;
 }

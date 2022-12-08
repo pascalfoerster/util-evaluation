@@ -20,7 +20,7 @@
  */
 package de.featjar.evaluation.properties;
 
-import de.featjar.evaluation.EvaluatorConfig;
+import de.featjar.evaluation.Evaluator;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
@@ -52,7 +52,7 @@ public class Property<T> {
         this.name = name;
         this.defaultValue = defaultValue;
         this.converter = converter;
-        EvaluatorConfig.addProperty(this);
+        Evaluator.addProperty(this);
     }
 
     public T getValue() {

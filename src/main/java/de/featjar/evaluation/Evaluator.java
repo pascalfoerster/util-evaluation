@@ -20,9 +20,13 @@
  */
 package de.featjar.evaluation;
 
+import de.featjar.evaluation.properties.ListProperty;
 import de.featjar.evaluation.properties.Property;
+import de.featjar.evaluation.properties.Seed;
 import de.featjar.util.cli.CLIFunction;
+import de.featjar.util.io.IO;
 import de.featjar.util.io.csv.CSVWriter;
+import de.featjar.util.io.namelist.NameListFormat;
 import de.featjar.util.logging.Logger;
 import de.featjar.util.logging.TabFormatter;
 import de.featjar.util.logging.TimeStampFormatter;
@@ -34,14 +38,141 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.LinkedHashMap;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.Properties;
 
 /**
+ * TODO documentation
+ *
  * @author Sebastian Krieter
  */
 public abstract class Evaluator implements CLIFunction {
+
+    private static final String DATE_FORMAT_STRING = "yyyy-MM-dd_HH-mm-ss";
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT_STRING);
+
+    private static final String DEFAULT_RESOURCE_DIRECTORY = "";
+    private static final String DEFAULT_MODELS_DIRECTORY = "models";
+    private static final String DEFAULT_CONFIG_DIRECTORY = "config";
+    private static final String DEFAULT_OUTPUT_DIRECTORY = "output";
+
+    protected static final List<Property<?>> propertyList = new LinkedList<>();
+
+    public final Property<String> outputPathProperty =
+            new Property<>("output", Property.StringConverter, DEFAULT_OUTPUT_DIRECTORY);
+    public final Property<String> modelsPathProperty =
+            new Property<>("models", Property.StringConverter, DEFAULT_MODELS_DIRECTORY);
+    public final Property<String> resourcesPathProperty =
+            new Property<>("resources", Property.StringConverter, DEFAULT_RESOURCE_DIRECTORY);
+
+    public final ListProperty<String> phases = new ListProperty<>("phases", Property.StringConverter);
+    public final Property<Integer> debug = new Property<>("debug", Property.IntegerConverter);
+    public final Property<Integer> verbosity = new Property<>("verbosity", Property.IntegerConverter);
+    public final Property<Long> timeout = new Property<>("timeout", Property.LongConverter, Long.MAX_VALUE);
+    public final Seed randomSeed = new Seed();
+
+    public final Property<Integer> systemIterations = new Property<>("systemIterations", Property.IntegerConverter, 1);
+    public final Property<Integer> algorithmIterations =
+            new Property<>("algorithmIterations", Property.IntegerConverter, 1);
+
+    public Path configPath;
+    public Path outputPath;
+    public Path outputRootPath;
+    public Path modelPath;
+    public Path resourcePath;
+    public Path csvPath;
+    public Path tempPath;
+    public Path logPath;
+    public List<String> systemNames;
+    public List<Integer> systemIDs;
+
+    public final TabFormatter tabFormatter = new TabFormatter();
+
+    public int systemIndex, systemIteration, systemIndexMax, systemIterationMax;
+
+    public static void addProperty(Property<?> property) {
+        propertyList.add(property);
+    }
+
+    public void readConfig(String name) throws Exception {
+        readConfigFile(name);
+    }
+
+    public String getTimeStamp() {
+        return DATE_FORMAT.format(new Timestamp(System.currentTimeMillis()));
+    }
+
+    public String readCurrentOutputMarker() {
+        final Path currentOutputMarkerFile = outputRootPath.resolve(".current");
+        String currentOutputMarker = null;
+        if (Files.isReadable(currentOutputMarkerFile)) {
+            List<String> lines;
+            try {
+                lines = Files.readAllLines(currentOutputMarkerFile);
+
+                if (!lines.isEmpty()) {
+                    final String firstLine = lines.get(0);
+                    currentOutputMarker = firstLine.trim();
+                }
+            } catch (final Exception e) {
+                Logger.logError(e);
+            }
+        }
+
+        try {
+            Files.createDirectories(outputRootPath);
+        } catch (final IOException e) {
+            Logger.logError(e);
+        }
+
+        if (currentOutputMarker == null) {
+            currentOutputMarker = getTimeStamp();
+            try {
+                Files.write(currentOutputMarkerFile, currentOutputMarker.getBytes());
+            } catch (final IOException e) {
+                Logger.logError(e);
+            }
+        }
+        return currentOutputMarker;
+    }
+
+    public void readSystemNames() {
+        final List<NameListFormat.NameEntry> names = IO.load(configPath.resolve("models.txt"), new NameListFormat())
+                .orElse(Collections.emptyList(), Logger::logProblems);
+        systemNames = new ArrayList<>(names.size());
+        systemIDs = new ArrayList<>(names.size());
+
+        for (final NameListFormat.NameEntry nameEntry : names) {
+            systemNames.add(nameEntry.getName());
+            systemIDs.add(nameEntry.getID());
+        }
+    }
+
+    private Properties readConfigFile(String configName) throws Exception {
+        final Path path = configPath.resolve(configName + ".properties");
+        System.out.print("Reading config file. (" + path.toString() + ") ... ");
+        final Properties properties = new Properties();
+        try {
+            properties.load(Files.newInputStream(path));
+            for (final Property<?> prop : propertyList) {
+                final String value = properties.getProperty(prop.getKey());
+                if (value != null) {
+                    prop.setValue(value);
+                }
+            }
+            System.out.println("Success!");
+            return properties;
+        } catch (final IOException e) {
+            System.out.println("Fail! -> " + e.getMessage());
+            System.err.println(e);
+            throw e;
+        }
+    }
 
     @Override
     public void run(List<String> args) {
@@ -51,9 +182,19 @@ public abstract class Evaluator implements CLIFunction {
         }
         Logger.logInfo(System.getProperty("user.dir"));
         try {
-            init(args.get(0), args.size() > 1 ? args.get(1) : "config");
+            init(args.get(0), args.size() > 1 ? args.get(1) : DEFAULT_CONFIG_DIRECTORY);
             printConfigFile();
-            evaluate();
+            phaseLoop:
+            for (String phase : phases.getValue()) {
+                for (EvaluationPhase phaseExtension :
+                        EvaluationPhaseExtensionPoint.getInstance().getExtensions()) {
+                    if (phaseExtension.getName().equals(phase)) {
+                        phaseExtension.run(this);
+                        continue phaseLoop;
+                    }
+                }
+                Logger.logError("Phase \"" + phase + "\" not found.");
+            }
         } catch (final Exception e) {
             Logger.logError(e);
         } finally {
@@ -61,18 +202,9 @@ public abstract class Evaluator implements CLIFunction {
         }
     }
 
-    public final TabFormatter tabFormatter = new TabFormatter();
-    protected EvaluatorConfig config;
-
-    private final LinkedHashMap<String, CSVWriter> csvWriterList = new LinkedHashMap<>();
-
-    protected int systemIndex;
-    protected int systemIteration;
-
     public void init(String configPath, String configName) throws Exception {
-        config = new EvaluatorConfig(configPath);
-        addProperties();
-        config.readConfig(configName);
+        this.configPath = Paths.get(configPath);
+        readConfig(configName);
         initPaths();
         try {
             setupDirectories();
@@ -89,32 +221,32 @@ public abstract class Evaluator implements CLIFunction {
             throw e;
         }
 
-        config.readSystemNames();
-        addCSVWriters();
-        for (final CSVWriter writer : csvWriterList.values()) {
-            writer.flush();
-        }
+        readSystemNames();
+        initConstants();
         Logger.logInfo("Running " + this.getClass().getSimpleName());
     }
 
     protected void initPaths() {
-        config.outputRootPath = Paths.get(config.outputPathProperty.getValue());
-        config.resourcePath = Paths.get(config.resourcesPathProperty.getValue());
-        config.modelPath = config.resourcePath.resolve(config.modelsPathProperty.getValue());
-        config.outputPath = config.outputRootPath.resolve(config.readCurrentOutputMarker());
-        config.csvPath = config.outputPath.resolve("data");
-        config.tempPath = config.outputPath.resolve("temp");
-        config.logPath = config.outputPath.resolve("log-" + config.getTimeStamp());
+        outputRootPath = Paths.get(outputPathProperty.getValue());
+        resourcePath = Paths.get(resourcesPathProperty.getValue());
+        modelPath = resourcePath.resolve(modelsPathProperty.getValue());
+        outputPath = outputRootPath.resolve(readCurrentOutputMarker());
+        csvPath = outputPath.resolve("data");
+        tempPath = outputPath.resolve("temp");
+        logPath = outputPath.resolve("log-" + getTimeStamp());
     }
 
-    protected void addProperties() {}
+    protected void initConstants() {
+        systemIterationMax = systemIterations.getValue();
+        systemIndexMax = systemNames.size();
+    }
 
     protected void setupDirectories() throws IOException {
         try {
-            createDir(config.outputPath);
-            createDir(config.csvPath);
-            createDir(config.tempPath);
-            createDir(config.logPath);
+            createDir(outputPath);
+            createDir(csvPath);
+            createDir(tempPath);
+            createDir(logPath);
         } catch (final IOException e) {
             Logger.logError("Could not create output directory.");
             Logger.logError(e);
@@ -124,7 +256,7 @@ public abstract class Evaluator implements CLIFunction {
 
     private void installLogger() throws FileNotFoundException {
         Logger.setErrLog(Logger.LogType.ERROR);
-        switch (config.verbosity.getValue()) {
+        switch (verbosity.getValue()) {
             case 0:
                 Logger.setOutLog(Logger.LogType.INFO);
                 break;
@@ -135,10 +267,10 @@ public abstract class Evaluator implements CLIFunction {
                 Logger.setOutLog(Logger.LogType.INFO, Logger.LogType.DEBUG, Logger.LogType.PROGRESS);
                 break;
         }
-        if (config.logPath != null) {
-            final Path outLogFile = config.logPath.resolve("output.log");
+        if (logPath != null) {
+            final Path outLogFile = logPath.resolve("output.log");
             Logger.addFileLog(outLogFile, Logger.LogType.INFO, Logger.LogType.DEBUG);
-            final Path errLogFile = config.logPath.resolve("error.log");
+            final Path errLogFile = logPath.resolve("error.log");
             Logger.addFileLog(errLogFile, Logger.LogType.ERROR);
         }
         Logger.addFormatter(new TimeStampFormatter());
@@ -152,18 +284,14 @@ public abstract class Evaluator implements CLIFunction {
         }
     }
 
-    protected void addCSVWriters() {}
-
     public void dispose() {
         Logger.uninstall();
-        if (config.debug.getValue() == 0) {
-            deleteTempFolder();
-        }
+        deleteTempFolder();
     }
 
     private void deleteTempFolder() {
         try {
-            Files.walkFileTree(config.tempPath, new SimpleFileVisitor<Path>() {
+            Files.walkFileTree(tempPath, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     Files.delete(file);
@@ -181,82 +309,55 @@ public abstract class Evaluator implements CLIFunction {
         }
     }
 
-    public abstract void evaluate() throws Exception;
-
     private void printConfigFile() {
-        for (final Property<?> prop : EvaluatorConfig.propertyList) {
-            Logger.logInfo(prop.toString());
+        StringBuilder sb = new StringBuilder();
+        sb.append("Current Configuration: ");
+        for (final Property<?> prop : propertyList) {
+            sb.append("\n\t");
+            sb.append(prop.toString());
         }
+        Logger.logInfo(sb.toString());
     }
 
-    protected void logSystem() {
+    public void logSystem() {
         final StringBuilder sb = new StringBuilder();
         sb.append("Processing System: ");
-        sb.append(config.systemNames.get(systemIndex));
+        sb.append(systemNames.get(systemIndex));
         sb.append(" (");
         sb.append(systemIndex + 1);
         sb.append("/");
-        sb.append(config.systemNames.size());
+        sb.append(systemNames.size());
         sb.append(")");
         Logger.logInfo(sb.toString());
     }
 
-    protected void logSystemRun() {
+    public void logSystemRun() {
         final StringBuilder sb = new StringBuilder();
         sb.append("Processing System: ");
-        sb.append(config.systemNames.get(systemIndex));
+        sb.append(systemNames.get(systemIndex));
         sb.append(" (");
         sb.append(systemIndex + 1);
         sb.append("/");
-        sb.append(config.systemNames.size());
+        sb.append(systemNames.size());
         sb.append(") - ");
-        sb.append(systemIteration + 1);
+        sb.append(systemIteration);
         sb.append("/");
-        sb.append(config.systemIterations.getValue());
+        sb.append(systemIterations.getValue());
         Logger.logInfo(sb.toString());
     }
 
-    protected CSVWriter addCSVWriter(String fileName, List<String> csvHeader) {
-        final CSVWriter existingCSVWriter = csvWriterList.get(fileName);
-        if (existingCSVWriter == null) {
-            final CSVWriter csvWriter = new CSVWriter();
-            try {
-                csvWriter.setOutputDirectory(config.csvPath);
-                csvWriter.setFileName(fileName);
-            } catch (final IOException e) {
-                Logger.logError(e);
-                return null;
-            }
-            csvWriter.setAppend(config.append.getValue());
-            csvWriter.setHeader(csvHeader);
-            csvWriterList.put(fileName, csvWriter);
-            return csvWriter;
-        } else {
-            return existingCSVWriter;
-        }
-    }
-
-    protected void extendCSVWriter(String fileName, List<String> csvHeader) {
-        final CSVWriter existingCSVWriter = csvWriterList.get(fileName);
-        if (existingCSVWriter != null) {
-            extendCSVWriter(existingCSVWriter, csvHeader);
-        }
-    }
-
-    protected void extendCSVWriter(CSVWriter writer, List<String> csvHeader) {
-        for (final String headerValue : csvHeader) {
-            writer.addHeaderValue(headerValue);
-        }
-    }
-
-    protected final void writeCSV(CSVWriter writer, Consumer<CSVWriter> writing) {
-        writer.createNewLine();
+    public CSVWriter addCSVWriter(String fileName, List<String> csvHeader) {
+        final CSVWriter csvWriter = new CSVWriter();
         try {
-            writing.accept(writer);
-        } catch (final Exception e) {
-            writer.removeLastLine();
-            throw e;
+            csvWriter.setOutputDirectory(csvPath);
+            csvWriter.setFileName(fileName);
+        } catch (final IOException e) {
+            Logger.logError(e);
+            return null;
         }
-        writer.flush();
+        csvWriter.setAppend(true);
+        csvWriter.setHeader(csvHeader);
+        csvWriter.flush();
+        return csvWriter;
     }
 }
