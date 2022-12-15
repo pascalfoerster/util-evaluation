@@ -95,7 +95,7 @@ public abstract class Evaluator implements Command {
         for (final CSVFile writer : csvWriterList.values()) {
             writer.flush();
         }
-        Feat.log().info("Running " + this.getClass().getSimpleName());
+        Feat.log().info("running " + this.getClass().getSimpleName());
     }
 
     protected void initPaths() {
