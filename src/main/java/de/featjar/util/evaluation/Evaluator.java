@@ -22,7 +22,7 @@ package de.featjar.util.evaluation;
 
 import de.featjar.base.Feat;
 import de.featjar.util.evaluation.properties.Property;
-import de.featjar.base.cli.Command;
+import de.featjar.base.cli.ICommand;
 import de.featjar.base.io.csv.CSVFile;
 import de.featjar.base.log.Log;
 import de.featjar.base.log.IndentFormatter;
@@ -42,7 +42,7 @@ import java.util.function.Consumer;
 /**
  * @author Sebastian Krieter
  */
-public abstract class Evaluator implements Command {
+public abstract class Evaluator implements ICommand {
 
     @Override
     public void run(List<String> args) {
