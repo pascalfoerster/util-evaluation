@@ -23,8 +23,8 @@ package de.featjar.util.evaluation.util;
 import de.featjar.base.Feat;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
-import de.featjar.base.io.format.FormatSupplier;
-import de.featjar.base.log.Log;
+import de.featjar.base.io.format.IFormatSupplier;
+
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.DirectoryStream;
@@ -43,7 +43,7 @@ public class ModelReader<T> {
 
     private String defaultFileName = "model.xml";
     private Path pathToFiles;
-    private FormatSupplier<T> formatSupplier;
+    private IFormatSupplier<T> formatSupplier;
 
     public final Result<T> read(final String name) {
         Result<T> fm = null;
@@ -79,11 +79,11 @@ public class ModelReader<T> {
         this.defaultFileName = defaultFileName;
     }
 
-    public FormatSupplier<T> getFormatSupplier() {
+    public IFormatSupplier<T> getFormatSupplier() {
         return formatSupplier;
     }
 
-    public void setFormatSupplier(FormatSupplier<T> formatSupplier) {
+    public void setFormatSupplier(IFormatSupplier<T> formatSupplier) {
         this.formatSupplier = formatSupplier;
     }
 
