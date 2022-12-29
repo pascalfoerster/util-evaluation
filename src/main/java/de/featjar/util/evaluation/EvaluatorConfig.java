@@ -151,7 +151,7 @@ public class EvaluatorConfig {
 
     public void readSystemNames() {
         systemNames = IO.load(configPath.resolve("models.txt"), new StringListFormat())
-                .orElse(Collections.emptyList(), Log::problems);
+                .orElse(Collections.emptyList(), Log::problem);
     }
 
     private Properties readConfigFile(String configName) throws Exception {
