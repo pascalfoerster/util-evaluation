@@ -128,14 +128,14 @@ public class EvaluatorConfig {
                     currentOutputMarker = firstLine.trim();
                 }
             } catch (final Exception e) {
-                Feat.log().error(e);
+                FeatJAR.log().error(e);
             }
         }
 
         try {
             Files.createDirectories(outputRootPath);
         } catch (final IOException e) {
-            Feat.log().error(e);
+            FeatJAR.log().error(e);
         }
 
         if (currentOutputMarker == null) {
@@ -143,7 +143,7 @@ public class EvaluatorConfig {
             try {
                 Files.write(currentOutputMarkerFile, currentOutputMarker.getBytes());
             } catch (final IOException e) {
-                Feat.log().error(e);
+                FeatJAR.log().error(e);
             }
         }
         return currentOutputMarker;
@@ -156,7 +156,7 @@ public class EvaluatorConfig {
 
     private Properties readConfigFile(String configName) throws Exception {
         final Path path = configPath.resolve(configName + ".properties");
-        Feat.log().info("Reading config file. (" + path.toString() + ") ... ");
+        FeatJAR.log().info("Reading config file. (" + path.toString() + ") ... ");
         final Properties properties = new Properties();
         try {
             properties.load(Files.newInputStream(path));
@@ -166,11 +166,11 @@ public class EvaluatorConfig {
                     prop.setValue(value);
                 }
             }
-            Feat.log().info("Success!");
+            FeatJAR.log().info("Success!");
             return properties;
         } catch (final IOException e) {
-            Feat.log().info("Fail! -> " + e.getMessage());
-            Feat.log().error(e);
+            FeatJAR.log().info("Fail! -> " + e.getMessage());
+            FeatJAR.log().error(e);
             throw e;
         }
     }

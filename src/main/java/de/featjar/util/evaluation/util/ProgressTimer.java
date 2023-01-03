@@ -71,7 +71,7 @@ public class ProgressTimer {
     private void printTime() {
         if (verbose) {
             final double timeDiff = (lastTime / 1_0000_00L) / 1_000.0;
-            Feat.log().info("Time: " + timeDiff + "s");
+            FeatJAR.log().info("Time: " + timeDiff + "s");
         }
     }
 

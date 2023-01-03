@@ -24,6 +24,6 @@ public class ErrStreamReader implements IOutputReader {
 
     @Override
     public void readOutput(String line) throws Exception {
-        Feat.log().error(line);
+        FeatJAR.log().error(line);
     }
 }

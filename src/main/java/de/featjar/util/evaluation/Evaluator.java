@@ -20,7 +20,7 @@
  */
 package de.featjar.util.evaluation;
 
-import de.featjar.base.Feat;
+import de.featjar.base.data.Maps;
 import de.featjar.util.evaluation.properties.Property;
 import de.featjar.base.cli.ICommand;
 import de.featjar.base.io.csv.CSVFile;
@@ -47,16 +47,16 @@ public abstract class Evaluator implements ICommand {
     @Override
     public void run(List<String> args) {
         if (args.size() < 1) {
-            Feat.log().info("Configuration path not specified!");
+            FeatJAR.log().info("Configuration path not specified!");
             return;
         }
-        Feat.log().info(System.getProperty("user.dir"));
+        FeatJAR.log().info(System.getProperty("user.dir"));
         try {
             init(args.get(0), args.size() > 1 ? args.get(1) : "config");
             printConfigFile();
             evaluate();
         } catch (final Exception e) {
-            Feat.log().error(e);
+            FeatJAR.log().error(e);
         } finally {
             dispose();
         }
@@ -65,7 +65,7 @@ public abstract class Evaluator implements ICommand {
     public final IndentFormatter indentFormatter = new IndentFormatter();
     protected EvaluatorConfig config;
 
-    private final LinkedHashMap<String, CSVFile> csvWriterList = new LinkedHashMap<>();
+    private final LinkedHashMap<String, CSVFile> csvWriterList = Maps.empty();
 
     protected int systemIndex;
     protected int systemIteration;
@@ -78,15 +78,15 @@ public abstract class Evaluator implements ICommand {
         try {
             setupDirectories();
         } catch (final IOException e) {
-            Feat.log().error("Fail -> Could not create output directory.");
-            Feat.log().error(e);
+            FeatJAR.log().error("Fail -> Could not create output directory.");
+            FeatJAR.log().error(e);
             throw e;
         }
         try {
             installLogger();
         } catch (final Exception e) {
-            Feat.log().error("Fail -> Could not install logger.");
-            Feat.log().error(e);
+            FeatJAR.log().error("Fail -> Could not install logger.");
+            FeatJAR.log().error(e);
             throw e;
         }
 
@@ -95,7 +95,7 @@ public abstract class Evaluator implements ICommand {
         for (final CSVFile writer : csvWriterList.values()) {
             writer.flush();
         }
-        Feat.log().info("running " + this.getClass().getSimpleName());
+        FeatJAR.log().info("running " + this.getClass().getSimpleName());
     }
 
     protected void initPaths() {
@@ -117,14 +117,14 @@ public abstract class Evaluator implements ICommand {
             createDir(config.tempPath);
             createDir(config.logPath);
         } catch (final IOException e) {
-            Feat.log().error("Could not create output directory.");
-            Feat.log().error(e);
+            FeatJAR.log().error("Could not create output directory.");
+            FeatJAR.log().error(e);
             throw e;
         }
     }
 
     private void installLogger() { // TODO: use CommandLine.configureVerbosity
-        Feat.install(cfg -> {
+        FeatJAR.install(cfg -> {
             cfg.log.logToSystemErr(Log.Verbosity.ERROR);
             switch (config.verbosity.getValue()) {
                 case 0:
@@ -155,7 +155,7 @@ public abstract class Evaluator implements ICommand {
     protected void addCSVWriters() {}
 
     public void dispose() {
-        Feat.log().uninstall();
+        FeatJAR.log().uninstall();
         if (config.debug.getValue() == 0) {
             deleteTempFolder();
         }
@@ -185,7 +185,7 @@ public abstract class Evaluator implements ICommand {
 
     private void printConfigFile() {
         for (final Property<?> prop : EvaluatorConfig.propertyList) {
-            Feat.log().info(prop.toString());
+            FeatJAR.log().info(prop.toString());
         }
     }
 
@@ -198,7 +198,7 @@ public abstract class Evaluator implements ICommand {
         sb.append("/");
         sb.append(config.systemNames.size());
         sb.append(")");
-        Feat.log().info(sb.toString());
+        FeatJAR.log().info(sb.toString());
     }
 
     protected void logSystemRun() {
@@ -213,7 +213,7 @@ public abstract class Evaluator implements ICommand {
         sb.append(systemIteration + 1);
         sb.append("/");
         sb.append(config.systemIterations.getValue());
-        Feat.log().info(sb.toString());
+        FeatJAR.log().info(sb.toString());
     }
 
     protected CSVFile addCSVWriter(String fileName, List<String> csvHeader) {
@@ -223,7 +223,7 @@ public abstract class Evaluator implements ICommand {
             try {
                 csvFile = new CSVFile(config.csvPath.resolve(fileName));
             } catch (final IOException e) {
-                Feat.log().error(e);
+                FeatJAR.log().error(e);
                 return null;
             }
             csvFile.setHeaderFields(csvHeader);

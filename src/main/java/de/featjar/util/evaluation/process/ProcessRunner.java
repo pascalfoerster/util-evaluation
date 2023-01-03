@@ -42,7 +42,7 @@ public class ProcessRunner {
             System.gc();
             algorithm.preProcess();
 
-            Feat.log().info(algorithm.getCommand());
+            FeatJAR.log().info(algorithm.getCommand());
 
             final List<String> command = algorithm.getCommandElements();
             if (!command.isEmpty()) {
@@ -75,16 +75,16 @@ public class ProcessRunner {
                     if (process != null) {
                         process.destroyForcibly();
                     }
-                    Feat.log().info("In time: " + terminatedInTime + ", no error: " + noError);
+                    FeatJAR.log().info("In time: " + terminatedInTime + ", no error: " + noError);
                 }
             } else {
                 result.setTerminatedInTime(false);
                 result.setNoError(false);
                 result.setTime(Result.INVALID_TIME);
-                Feat.log().info("Invalid command");
+                FeatJAR.log().info("Invalid command");
             }
         } catch (final Exception e) {
-            Feat.log().error(e);
+            FeatJAR.log().error(e);
             result.setTerminatedInTime(false);
             result.setNoError(false);
             result.setTime(Result.INVALID_TIME);
@@ -92,7 +92,7 @@ public class ProcessRunner {
         try {
             result.setResult(algorithm.parseResults());
         } catch (final Exception e) {
-            Feat.log().error(e);
+            FeatJAR.log().error(e);
             if (terminatedInTime) {
                 result.setNoError(false);
             }
@@ -100,7 +100,7 @@ public class ProcessRunner {
         try {
             algorithm.postProcess();
         } catch (final Exception e) {
-            Feat.log().error(e);
+            FeatJAR.log().error(e);
         }
         return result;
     }

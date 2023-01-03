@@ -51,7 +51,7 @@ public class StreamRedirector implements Runnable {
                 }
             }
         } catch (final IOException e) {
-            Feat.log().error(e);
+            FeatJAR.log().error(e);
         }
     }
 }

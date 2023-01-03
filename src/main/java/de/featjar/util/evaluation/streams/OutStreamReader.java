@@ -24,6 +24,6 @@ public class OutStreamReader implements IOutputReader {
 
     @Override
     public void readOutput(String line) throws Exception {
-        Feat.log().info(line);
+        FeatJAR.log().info(line);
     }
 }

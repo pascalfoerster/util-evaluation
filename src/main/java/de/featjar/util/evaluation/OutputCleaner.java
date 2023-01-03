@@ -28,7 +28,7 @@ public class OutputCleaner extends Evaluator {
     @Override
     public void evaluate() throws IOException {
         Files.deleteIfExists(config.outputRootPath.resolve(".current"));
-        Feat.log().info("Reset current output path.");
+        FeatJAR.log().info("Reset current output path.");
     }
 
     @Override
