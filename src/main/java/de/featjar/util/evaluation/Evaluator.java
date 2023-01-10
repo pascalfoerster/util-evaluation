@@ -20,14 +20,13 @@
  */
 package de.featjar.util.evaluation;
 
-import de.featjar.base.data.Maps;
-import de.featjar.util.evaluation.properties.Property;
 import de.featjar.base.cli.ICommand;
+import de.featjar.base.data.Maps;
 import de.featjar.base.io.csv.CSVFile;
-import de.featjar.base.log.Log;
 import de.featjar.base.log.IndentFormatter;
+import de.featjar.base.log.Log;
 import de.featjar.base.log.TimeStampFormatter;
-
+import de.featjar.util.evaluation.properties.Property;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;

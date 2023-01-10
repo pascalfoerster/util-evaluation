@@ -21,7 +21,6 @@
 package de.featjar.util.evaluation.process;
 
 import de.featjar.util.evaluation.streams.IOutputReader;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

@@ -20,12 +20,11 @@
  */
 package de.featjar.util.evaluation;
 
-import de.featjar.util.evaluation.properties.Property;
-import de.featjar.util.evaluation.properties.Seed;
 import de.featjar.base.io.IO;
 import de.featjar.base.io.list.StringListFormat;
 import de.featjar.base.log.Log;
-
+import de.featjar.util.evaluation.properties.Property;
+import de.featjar.util.evaluation.properties.Seed;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

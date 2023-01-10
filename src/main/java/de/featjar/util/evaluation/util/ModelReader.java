@@ -23,7 +23,6 @@ package de.featjar.util.evaluation.util;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
 import de.featjar.base.io.format.IFormatSupplier;
-
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.DirectoryStream;
