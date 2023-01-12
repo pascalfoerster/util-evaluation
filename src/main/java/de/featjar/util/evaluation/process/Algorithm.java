@@ -72,23 +72,6 @@ public abstract class Algorithm<R> implements IOutputReader {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if ((obj == null) || (getClass() != obj.getClass())) {
-            return false;
-        }
-        final Algorithm<?> other = (Algorithm<?>) obj;
-        return Objects.equals(getFullName(), other.getFullName());
-    }
-
-    @Override
-    public int hashCode() {
-        return getFullName().hashCode();
-    }
-
-    @Override
     public String toString() {
         return getFullName();
     }
