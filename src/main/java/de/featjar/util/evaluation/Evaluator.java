@@ -21,6 +21,7 @@
 package de.featjar.util.evaluation;
 
 import de.featjar.base.cli.ICommand;
+import de.featjar.base.cli.Option;
 import de.featjar.base.data.Maps;
 import de.featjar.base.io.csv.CSVFile;
 import de.featjar.base.log.IndentFormatter;
@@ -42,6 +43,11 @@ import java.util.function.Consumer;
  * @author Sebastian Krieter
  */
 public abstract class Evaluator implements ICommand {
+
+    @Override
+    public List<Option<?>> getOptions() {
+        return List.of(INPUT_OPTION, OUTPUT_OPTION);
+    }
 
     @Override
     public void run(List<String> args) {

@@ -20,11 +20,13 @@
  */
 package de.featjar.util.evaluation;
 
+import de.featjar.base.cli.Option;
+import de.featjar.base.cli.StringOption;
 import de.featjar.base.io.IO;
 import de.featjar.base.io.list.StringListFormat;
 import de.featjar.base.log.Log;
 import de.featjar.util.evaluation.properties.Property;
-import de.featjar.util.evaluation.properties.Seed;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,36 +39,22 @@ import java.util.List;
 import java.util.Properties;
 
 /**
+ * todo
+ * 
  * @author Sebastian Krieter
+ * @author Elias Kuiter
  */
 public class EvaluatorConfig {
+    public static final String DEFAULT_RESOURCE_DIRECTORY = "";
+    public static final String DEFAULT_CONFIG_DIRECTORY = "config";
 
-    private static final String DATE_FORMAT_STRING = "yyyy-MM-dd_HH-mm-ss";
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT_STRING);
+    public static final List<Property<?>> propertyList = new LinkedList<>();
 
-    private static final String DEFAULT_RESOURCE_DIRECTORY = "";
-    private static final String DEFAULT_MODELS_DIRECTORY = "models";
-    private static final String DEFAULT_CONFIG_DIRECTORY = "config";
-    private static final String DEFAULT_OUTPUT_DIRECTORY = "output";
-
-    protected static final List<Property<?>> propertyList = new LinkedList<>();
-
-    public final Property<String> outputPathProperty =
-            new Property<>("output", Property.StringConverter, DEFAULT_OUTPUT_DIRECTORY);
-    public final Property<String> modelsPathProperty =
-            new Property<>("models", Property.StringConverter, DEFAULT_MODELS_DIRECTORY);
-    public final Property<String> resourcesPathProperty =
+    public static final Property<String> resourcesPathProperty =
             new Property<>("resources", Property.StringConverter, DEFAULT_RESOURCE_DIRECTORY);
 
-    public final Property<Boolean> append = new Property<>("append", Property.BooleanConverter); // TODO remove
-    public final Property<Integer> debug = new Property<>("debug", Property.IntegerConverter);
-    public final Property<Integer> verbosity = new Property<>("verbosity", Property.IntegerConverter);
-    public final Property<Long> timeout = new Property<>("timeout", Property.LongConverter, Long.MAX_VALUE);
-    public final Seed randomSeed = new Seed();
-
-    public final Property<Integer> systemIterations = new Property<>("systemIterations", Property.IntegerConverter, 1);
-    public final Property<Integer> algorithmIterations =
-            new Property<>("algorithmIterations", Property.IntegerConverter, 1);
+    public static final Property<Boolean> append = new Property<>("append", Property.BooleanConverter); // TODO remove
+    public static final Property<Integer> debug = new Property<>("debug", Property.IntegerConverter);
 
     public Path configPath;
     public Path outputPath;
@@ -149,11 +137,11 @@ public class EvaluatorConfig {
     }
 
     public void readSystemNames() {
-        systemNames = IO.load(configPath.resolve("models.txt"), new StringListFormat())
+        systemNames = IO.load(configPath.resolve("input.txt"), new StringListFormat())
                 .orElse(Collections.emptyList(), Log::problem);
     }
 
-    private Properties readConfigFile(String configName) throws Exception {
+    protected Properties readConfigFile(String configName) throws Exception {
         final Path path = configPath.resolve(configName + ".properties");
         FeatJAR.log().info("Reading config file. (" + path.toString() + ") ... ");
         final Properties properties = new Properties();

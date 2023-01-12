@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public abstract class Algorithm<R> implements IOutputReader {
+public abstract class Algorithm<R> {
 
     protected int iterations = -1;
 
