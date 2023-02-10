@@ -90,12 +90,12 @@ public class ProcessRunner {
             result.setTime(Result.INVALID_TIME);
         }
         try {
-            result.setResult(algorithm.parseResults());
+            if (terminatedInTime && noError) {
+                result.setResult(algorithm.parseResults());
+            }
         } catch (final Exception e) {
             Logger.logError(e);
-            if (terminatedInTime) {
-                result.setNoError(false);
-            }
+            result.setNoError(false);
         }
         try {
             algorithm.postProcess();
