@@ -42,7 +42,7 @@ public class ProcessRunner {
             System.gc();
             algorithm.preProcess();
 
-            Logger.logInfo(algorithm.getCommand());
+            Logger.logDebug(algorithm.getCommand());
 
             final List<String> command = algorithm.getCommandElements();
             if (!command.isEmpty()) {

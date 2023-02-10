@@ -107,6 +107,14 @@ public abstract class Evaluator implements CLIFunction {
         return DATE_FORMAT.format(new Timestamp(System.currentTimeMillis()));
     }
 
+    public int getSystemID() {
+        return systemIDs.get(systemIndex);
+    }
+
+    public String getSystemName() {
+        return systemNames.get(systemIndex);
+    }
+
     public String readCurrentOutputMarker() {
         final Path currentOutputMarkerFile = outputRootPath.resolve(".current");
         String currentOutputMarker = null;
@@ -183,12 +191,14 @@ public abstract class Evaluator implements CLIFunction {
         Logger.logInfo(System.getProperty("user.dir"));
         try {
             init(args.get(0), args.size() > 1 ? args.get(1) : DEFAULT_CONFIG_DIRECTORY);
-            printConfigFile();
             phaseLoop:
             for (String phase : phases.getValue()) {
                 for (EvaluationPhase phaseExtension :
                         EvaluationPhaseExtensionPoint.getInstance().getExtensions()) {
                     if (phaseExtension.getName().equals(phase)) {
+                        updateSubPaths();
+                        Logger.logInfo("Running " + phaseExtension.getName());
+                        printConfigFile();
                         phaseExtension.run(this);
                         continue phaseLoop;
                     }
@@ -205,7 +215,14 @@ public abstract class Evaluator implements CLIFunction {
     public void init(String configPath, String configName) throws Exception {
         this.configPath = Paths.get(configPath);
         readConfig(configName);
-        initPaths();
+        initRootPaths();
+        readSystemNames();
+        initConstants();
+        Logger.logInfo("Running " + this.getClass().getSimpleName());
+    }
+
+    private void updateSubPaths() throws IOException {
+        initSubPaths();
         try {
             setupDirectories();
         } catch (final IOException e) {
@@ -220,16 +237,15 @@ public abstract class Evaluator implements CLIFunction {
             Logger.logError(e);
             throw e;
         }
-
-        readSystemNames();
-        initConstants();
-        Logger.logInfo("Running " + this.getClass().getSimpleName());
     }
 
-    protected void initPaths() {
+    protected void initRootPaths() {
         outputRootPath = Paths.get(outputPathProperty.getValue());
         resourcePath = Paths.get(resourcesPathProperty.getValue());
         modelPath = resourcePath.resolve(modelsPathProperty.getValue());
+    }
+
+    protected void initSubPaths() {
         outputPath = outputRootPath.resolve(readCurrentOutputMarker());
         csvPath = outputPath.resolve("data");
         tempPath = outputPath.resolve("temp");
@@ -255,6 +271,7 @@ public abstract class Evaluator implements CLIFunction {
     }
 
     private void installLogger() throws FileNotFoundException {
+        Logger.uninstall();
         Logger.setErrLog(Logger.LogType.ERROR);
         switch (verbosity.getValue()) {
             case 0:
@@ -346,7 +363,7 @@ public abstract class Evaluator implements CLIFunction {
         Logger.logInfo(sb.toString());
     }
 
-    public CSVWriter addCSVWriter(String fileName, List<String> csvHeader) {
+    public CSVWriter addCSVWriter(String fileName, String... csvHeader) {
         final CSVWriter csvWriter = new CSVWriter();
         try {
             csvWriter.setOutputDirectory(csvPath);

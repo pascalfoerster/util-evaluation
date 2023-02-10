@@ -111,7 +111,7 @@ public class ModelReader<T> {
         if (loadedFm.isPresent()) {
             return loadedFm;
         } else {
-            Logger.logProblems(loadedFm.getProblems());
+            Logger.logDebug(loadedFm.getProblems().get(0));
         }
         final Filter<Path> fileFilter = file -> Files.isReadable(file)
                 && Files.isRegularFile(file)
