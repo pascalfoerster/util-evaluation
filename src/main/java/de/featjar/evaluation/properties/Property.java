@@ -30,6 +30,7 @@ public class Property<T> {
 
     public static final Function<String, Boolean> BooleanConverter = Boolean::parseBoolean;
     public static final Function<String, Integer> IntegerConverter = Integer::parseInt;
+    public static final Function<String, Double> DoubleConverter = Double::parseDouble;
     public static final Function<String, Long> LongConverter = Long::parseLong;
     public static final Function<String, String> StringConverter = String::toString;
 
