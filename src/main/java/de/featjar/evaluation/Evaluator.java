@@ -247,7 +247,7 @@ public abstract class Evaluator implements CLIFunction {
 
     protected void initSubPaths() {
         outputPath = outputRootPath.resolve(readCurrentOutputMarker());
-        csvPath = outputPath.resolve("data");
+        csvPath = outputPath.resolve("data-" + getTimeStamp());
         tempPath = outputPath.resolve("temp");
         logPath = outputPath.resolve("log-" + getTimeStamp());
     }
