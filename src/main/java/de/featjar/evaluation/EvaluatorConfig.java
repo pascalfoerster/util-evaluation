@@ -18,14 +18,14 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.util.evaluation;
+package de.featjar.evaluation;
 
 import de.featjar.base.cli.Option;
 import de.featjar.base.cli.StringOption;
 import de.featjar.base.io.IO;
 import de.featjar.base.io.list.StringListFormat;
 import de.featjar.base.log.Log;
-import de.featjar.util.evaluation.properties.Property;
+import de.featjar.evaluation.properties.Property;
 
 import java.io.IOException;
 import java.nio.file.Files;

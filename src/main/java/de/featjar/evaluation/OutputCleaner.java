@@ -18,7 +18,7 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.util.evaluation;
+package de.featjar.evaluation;
 
 import java.io.IOException;
 import java.nio.file.Files;

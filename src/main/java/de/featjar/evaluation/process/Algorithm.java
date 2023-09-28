@@ -18,13 +18,14 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.util.evaluation.process;
+package de.featjar.evaluation.process;
 
-import de.featjar.util.evaluation.streams.IOutputReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+
+import de.featjar.evaluation.streams.IOutputReader;
 
 public abstract class Algorithm<R> {
 

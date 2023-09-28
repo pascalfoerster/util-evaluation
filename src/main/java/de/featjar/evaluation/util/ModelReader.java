@@ -18,7 +18,7 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.util.evaluation.util;
+package de.featjar.evaluation.util;
 
 import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;

@@ -18,13 +18,14 @@
  *
  * See <https://github.com/FeatureIDE/FeatJAR-evaluation> for further information.
  */
-package de.featjar.util.evaluation.properties;
+package de.featjar.evaluation.properties;
 
-import de.featjar.util.evaluation.EvaluatorConfig;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import de.featjar.evaluation.EvaluatorConfig;
 
 public class Property<T> {
 
