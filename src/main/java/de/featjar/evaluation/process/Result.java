@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2023 Sebastian Krieter
+ * Copyright (C) 2023 FeatJAR-Development-Team
  *
- * This file is part of evaluation.
+ * This file is part of FeatJAR-evaluation.
  *
  * evaluation is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with evaluation. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatJAR/evaluation> for further information.
+ * See <https://github.com/FeatJAR> for further information.
  */
 package de.featjar.evaluation.process;
 
