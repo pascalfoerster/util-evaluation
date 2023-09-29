@@ -111,7 +111,7 @@ public class ModelReader<T> {
         if (loadedFm.isPresent()) {
             return loadedFm;
         } else {
-        	FeatJAR.log().debug(loadedFm.getProblems().get(0));
+            FeatJAR.log().debug(loadedFm.getProblems().get(0));
         }
         final Filter<Path> fileFilter = file -> Files.isReadable(file)
                 && Files.isRegularFile(file)
@@ -161,5 +161,4 @@ public class ModelReader<T> {
         }
         return Result.empty();
     }
-
 }

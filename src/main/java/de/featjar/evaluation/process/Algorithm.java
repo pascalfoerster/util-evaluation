@@ -20,11 +20,10 @@
  */
 package de.featjar.evaluation.process;
 
+import de.featjar.evaluation.streams.IOutputReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-
-import de.featjar.evaluation.streams.IOutputReader;
 
 public abstract class Algorithm<R> implements IOutputReader {
 

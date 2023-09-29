@@ -20,10 +20,9 @@
  */
 package de.featjar.evaluation;
 
+import de.featjar.base.FeatJAR;
 import java.io.IOException;
 import java.nio.file.Files;
-
-import de.featjar.base.FeatJAR;
 
 /**
  * TODO documentation

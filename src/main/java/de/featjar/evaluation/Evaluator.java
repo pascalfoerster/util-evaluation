@@ -20,6 +20,12 @@
  */
 package de.featjar.evaluation;
 
+import de.featjar.base.FeatJAR;
+import de.featjar.base.cli.ICommand;
+import de.featjar.base.cli.IOptionInput;
+import de.featjar.base.cli.ListOption;
+import de.featjar.base.cli.Option;
+import de.featjar.base.io.csv.CSVFile;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -33,26 +39,17 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 
-import de.featjar.base.FeatJAR;
-import de.featjar.base.cli.ICommand;
-import de.featjar.base.cli.IOptionInput;
-import de.featjar.base.cli.ListOption;
-import de.featjar.base.cli.Option;
-import de.featjar.base.io.csv.CSVFile;
-
 /**
  * TODO documentation
  *
  * @author Sebastian Krieter
  */
 public abstract class Evaluator implements ICommand {
-    
-	public final Option<Path> modelsPathProperty =
-            new Option<>("models", Option.PathParser)
+
+    public final Option<Path> modelsPathProperty = new Option<>("models", Option.PathParser)
             .setDefaultValue(Path.of("models"))
             .setValidator(Option.PathValidator);
-    public final Option<Path> resourcesPathProperty =
-            new Option<>("resources", Option.PathParser)
+    public final Option<Path> resourcesPathProperty = new Option<>("resources", Option.PathParser)
             .setDefaultValue(Path.of("resources"))
             .setValidator(Option.PathValidator);
 
@@ -65,18 +62,21 @@ public abstract class Evaluator implements ICommand {
 
     @Override
     public List<Option<?>> getOptions() {
-        return List.of(INPUT_OPTION, OUTPUT_OPTION, modelsPathProperty,
-        		resourcesPathProperty,
-        		phases,
-        		timeout,
-        		randomSeed,
-        		systemIterations,
-        		algorithmIterations);
+        return List.of(
+                INPUT_OPTION,
+                OUTPUT_OPTION,
+                modelsPathProperty,
+                resourcesPathProperty,
+                phases,
+                timeout,
+                randomSeed,
+                systemIterations,
+                algorithmIterations);
     }
 
     private static final String DATE_FORMAT_STRING = "yyyy-MM-dd_HH-mm-ss";
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT_STRING);
-    
+
     public Path configPath;
     public Path outputPath;
     public Path outputRootPath;
@@ -130,7 +130,7 @@ public abstract class Evaluator implements ICommand {
             try {
                 Files.write(currentOutputMarkerFile, currentOutputMarker.getBytes());
             } catch (final IOException e) {
-            	FeatJAR.log().error(e);
+                FeatJAR.log().error(e);
             }
         }
         return currentOutputMarker;
@@ -138,26 +138,26 @@ public abstract class Evaluator implements ICommand {
 
     public void readSystemNames() throws IOException {
         List<String> lines = Files.readAllLines(configPath.resolve("models.txt"));
-        
+
         systemNames = new ArrayList<>(lines.size());
         systemIDs = new ArrayList<>(lines.size());
 
         int lineID = 1;
         for (final String line : lines) {
-        	if (line.matches("[^#\t].*")) {
-        		systemNames.add(line);
-        		systemIDs.add(lineID);
-        	}
+            if (line.matches("[^#\t].*")) {
+                systemNames.add(line);
+                systemIDs.add(lineID);
+            }
             lineID++;
         }
     }
 
     @Override
-	public void run(IOptionInput optionParser) {
+    public void run(IOptionInput optionParser) {
         try {
             init(optionParser);
             phaseLoop:
-            for (String phase : optionParser.get(phases).get()){
+            for (String phase : optionParser.get(phases).get()) {
                 for (EvaluationPhase phaseExtension :
                         EvaluationPhaseExtensionPoint.getInstance().getExtensions()) {
                     if (phaseExtension.getName().equals(phase)) {
@@ -198,8 +198,7 @@ public abstract class Evaluator implements ICommand {
         }
     }
 
-    protected void initRootPaths() {
-    }
+    protected void initRootPaths() {}
 
     protected void initSubPaths() {
         outputPath = outputRootPath.resolve(readCurrentOutputMarker());
@@ -287,22 +286,21 @@ public abstract class Evaluator implements ICommand {
     protected final void writeCSV(CSVFile writer, Consumer<CSVFile> writing) {
         writer.newLine();
         try {
-        	writing.accept(writer);
-        	writer.flush();
+            writing.accept(writer);
+            writer.flush();
         } catch (Exception e) {
-        	writer.removeLastLine();
+            writer.removeLastLine();
         }
     }
 
     public CSVFile addCSVWriter(String fileName, String... csvHeader) throws IOException {
         long count = Files.walk(csvPath)
-        	.filter(p -> p.getFileName().toString().matches(Pattern.quote(fileName) + "(-\\d+)?[.]csv"))
-        	.count();
+                .filter(p -> p.getFileName().toString().matches(Pattern.quote(fileName) + "(-\\d+)?[.]csv"))
+                .count();
         final Path csvFilePath = csvPath.resolve(fileName + "-" + count + ".csv");
-		final CSVFile csvWriter = new CSVFile(csvFilePath);
+        final CSVFile csvWriter = new CSVFile(csvFilePath);
         csvWriter.setHeaderFields(csvHeader);
         csvWriter.flush();
         return csvWriter;
     }
-
 }
