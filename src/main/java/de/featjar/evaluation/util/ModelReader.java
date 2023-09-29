@@ -20,6 +20,7 @@
  */
 package de.featjar.evaluation.util;
 
+import de.featjar.base.FeatJAR;
 import de.featjar.base.data.Result;
 import de.featjar.base.io.IO;
 import de.featjar.base.io.format.IFormatSupplier;
@@ -109,6 +110,8 @@ public class ModelReader<T> {
         Result<T> loadedFm = loadFile(rootPath.resolve(name));
         if (loadedFm.isPresent()) {
             return loadedFm;
+        } else {
+        	FeatJAR.log().debug(loadedFm.getProblems().get(0));
         }
         final Filter<Path> fileFilter = file -> Files.isReadable(file)
                 && Files.isRegularFile(file)
@@ -159,7 +162,4 @@ public class ModelReader<T> {
         return Result.empty();
     }
 
-    public void dispose() {
-        FeatJAR.log().uninstall();
-    }
 }

@@ -20,47 +20,156 @@
  */
 package de.featjar.evaluation;
 
-import de.featjar.base.cli.ICommand;
-import de.featjar.base.cli.Option;
-import de.featjar.base.data.Maps;
-import de.featjar.base.io.csv.CSVFile;
-import de.featjar.base.log.IndentFormatter;
-import de.featjar.base.log.Log;
-import de.featjar.base.log.TimeStampFormatter;
-import de.featjar.evaluation.properties.Property;
-
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.LinkedHashMap;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.regex.Pattern;
+
+import de.featjar.base.FeatJAR;
+import de.featjar.base.cli.ICommand;
+import de.featjar.base.cli.IOptionInput;
+import de.featjar.base.cli.ListOption;
+import de.featjar.base.cli.Option;
+import de.featjar.base.io.csv.CSVFile;
 
 /**
+ * TODO documentation
+ *
  * @author Sebastian Krieter
  */
 public abstract class Evaluator implements ICommand {
+    
+	public final Option<Path> modelsPathProperty =
+            new Option<>("models", Option.PathParser)
+            .setDefaultValue(Path.of("models"))
+            .setValidator(Option.PathValidator);
+    public final Option<Path> resourcesPathProperty =
+            new Option<>("resources", Option.PathParser)
+            .setDefaultValue(Path.of("resources"))
+            .setValidator(Option.PathValidator);
+
+    public final ListOption<String> phases = new ListOption<>("phases", Option.StringParser);
+    public final Option<Long> timeout = new Option<>("timeout", Option.LongParser, Long.MAX_VALUE);
+    public final Option<Long> randomSeed = new Option<>("seed", Option.LongParser);
+
+    public final Option<Integer> systemIterations = new Option<>("systemIterations", Option.IntegerParser, 1);
+    public final Option<Integer> algorithmIterations = new Option<>("algorithmIterations", Option.IntegerParser, 1);
 
     @Override
     public List<Option<?>> getOptions() {
-        return List.of(INPUT_OPTION, OUTPUT_OPTION);
+        return List.of(INPUT_OPTION, OUTPUT_OPTION, modelsPathProperty,
+        		resourcesPathProperty,
+        		phases,
+        		timeout,
+        		randomSeed,
+        		systemIterations,
+        		algorithmIterations);
+    }
+
+    private static final String DATE_FORMAT_STRING = "yyyy-MM-dd_HH-mm-ss";
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT_STRING);
+    
+    public Path configPath;
+    public Path outputPath;
+    public Path outputRootPath;
+    public Path modelPath;
+    public Path resourcePath;
+    public Path csvPath;
+    public Path tempPath;
+    public Path logPath;
+    public List<String> systemNames;
+    public List<Integer> systemIDs;
+
+    public int systemIndex, systemIteration, systemIndexMax, systemIterationMax;
+
+    public String getTimeStamp() {
+        return DATE_FORMAT.format(new Timestamp(System.currentTimeMillis()));
+    }
+
+    public int getSystemID() {
+        return systemIDs.get(systemIndex);
+    }
+
+    public String getSystemName() {
+        return systemNames.get(systemIndex);
+    }
+
+    public String readCurrentOutputMarker() {
+        final Path currentOutputMarkerFile = outputRootPath.resolve(".current");
+        String currentOutputMarker = null;
+        if (Files.isReadable(currentOutputMarkerFile)) {
+            List<String> lines;
+            try {
+                lines = Files.readAllLines(currentOutputMarkerFile);
+
+                if (!lines.isEmpty()) {
+                    final String firstLine = lines.get(0);
+                    currentOutputMarker = firstLine.trim();
+                }
+            } catch (final Exception e) {
+                FeatJAR.log().error(e);
+            }
+        }
+
+        try {
+            Files.createDirectories(outputRootPath);
+        } catch (final IOException e) {
+            FeatJAR.log().error(e);
+        }
+
+        if (currentOutputMarker == null) {
+            currentOutputMarker = getTimeStamp();
+            try {
+                Files.write(currentOutputMarkerFile, currentOutputMarker.getBytes());
+            } catch (final IOException e) {
+            	FeatJAR.log().error(e);
+            }
+        }
+        return currentOutputMarker;
+    }
+
+    public void readSystemNames() throws IOException {
+        List<String> lines = Files.readAllLines(configPath.resolve("models.txt"));
+        
+        systemNames = new ArrayList<>(lines.size());
+        systemIDs = new ArrayList<>(lines.size());
+
+        int lineID = 1;
+        for (final String line : lines) {
+        	if (line.matches("[^#\t].*")) {
+        		systemNames.add(line);
+        		systemIDs.add(lineID);
+        	}
+            lineID++;
+        }
     }
 
     @Override
-    public void run(List<String> args) {
-        if (args.size() < 1) {
-            FeatJAR.log().info("Configuration path not specified!");
-            return;
-        }
-        FeatJAR.log().info(System.getProperty("user.dir"));
+	public void run(IOptionInput optionParser) {
         try {
-            init(args.get(0), args.size() > 1 ? args.get(1) : "config");
-            printConfigFile();
-            evaluate();
+            init(optionParser);
+            phaseLoop:
+            for (String phase : optionParser.get(phases).get()){
+                for (EvaluationPhase phaseExtension :
+                        EvaluationPhaseExtensionPoint.getInstance().getExtensions()) {
+                    if (phaseExtension.getName().equals(phase)) {
+                        updateSubPaths();
+                        FeatJAR.log().info("Running " + phaseExtension.getName());
+                        printConfigFile();
+                        phaseExtension.run(this);
+                        continue phaseLoop;
+                    }
+                }
+                FeatJAR.log().error("Phase \"" + phase + "\" not found.");
+            }
         } catch (final Exception e) {
             FeatJAR.log().error(e);
         } finally {
@@ -68,19 +177,18 @@ public abstract class Evaluator implements ICommand {
         }
     }
 
-    public final IndentFormatter indentFormatter = new IndentFormatter();
-    protected EvaluatorConfig config;
+    public void init(IOptionInput optionInput) throws Exception {
+        outputRootPath = optionInput.get(OUTPUT_OPTION).get();
+        resourcePath = optionInput.get(resourcesPathProperty).get();
+        modelPath = optionInput.get(modelsPathProperty).get();
+        readSystemNames();
+        systemIterationMax = optionInput.get(systemIterations).get();
+        systemIndexMax = systemNames.size();
+        FeatJAR.log().info("Running " + this.getClass().getSimpleName());
+    }
 
-    private final LinkedHashMap<String, CSVFile> csvWriterList = Maps.empty();
-
-    protected int systemIndex;
-    protected int systemIteration;
-
-    public void init(String configPath, String configName) throws Exception {
-        config = new EvaluatorConfig(configPath);
-        addProperties();
-        config.readConfig(configName);
-        initPaths();
+    private void updateSubPaths() throws IOException {
+        initSubPaths();
         try {
             setupDirectories();
         } catch (final IOException e) {
@@ -88,68 +196,29 @@ public abstract class Evaluator implements ICommand {
             FeatJAR.log().error(e);
             throw e;
         }
-        try {
-            installLogger();
-        } catch (final Exception e) {
-            FeatJAR.log().error("Fail -> Could not install logger.");
-            FeatJAR.log().error(e);
-            throw e;
-        }
-
-        config.readSystemNames();
-        addCSVWriters();
-        for (final CSVFile writer : csvWriterList.values()) {
-            writer.flush();
-        }
-        FeatJAR.log().info("running " + this.getClass().getSimpleName());
     }
 
-    protected void initPaths() {
-        config.outputRootPath = Paths.get(config.outputPathProperty.getValue());
-        config.resourcePath = Paths.get(config.resourcesPathProperty.getValue());
-        config.modelPath = config.resourcePath.resolve(config.modelsPathProperty.getValue());
-        config.outputPath = config.outputRootPath.resolve(config.readCurrentOutputMarker());
-        config.csvPath = config.outputPath.resolve("data");
-        config.tempPath = config.outputPath.resolve("temp");
-        config.logPath = config.outputPath.resolve("log-" + config.getTimeStamp());
+    protected void initRootPaths() {
     }
 
-    protected void addProperties() {}
+    protected void initSubPaths() {
+        outputPath = outputRootPath.resolve(readCurrentOutputMarker());
+        csvPath = outputPath.resolve("data");
+        tempPath = outputPath.resolve("temp");
+        logPath = outputPath.resolve("log-" + getTimeStamp());
+    }
 
     protected void setupDirectories() throws IOException {
         try {
-            createDir(config.outputPath);
-            createDir(config.csvPath);
-            createDir(config.tempPath);
-            createDir(config.logPath);
+            createDir(outputPath);
+            createDir(csvPath);
+            createDir(tempPath);
+            createDir(logPath);
         } catch (final IOException e) {
             FeatJAR.log().error("Could not create output directory.");
             FeatJAR.log().error(e);
             throw e;
         }
-    }
-
-    private void installLogger() { // TODO: use CommandLine.configureVerbosity
-        FeatJAR.install(cfg -> {
-            cfg.log.logToSystemErr(Log.Verbosity.ERROR);
-            switch (config.verbosity.getValue()) {
-                case 0:
-                    cfg.log.logToSystemOut(Log.Verbosity.INFO);
-                    break;
-                case 1:
-                    cfg.log.logToSystemOut(Log.Verbosity.INFO, Log.Verbosity.DEBUG);
-                    break;
-                case 2:
-                    cfg.log.logToSystemOut(Log.Verbosity.INFO, Log.Verbosity.DEBUG, Log.Verbosity.PROGRESS);
-                    break;
-            }
-            if (config.logPath != null) {
-                cfg.log.logToFile(config.logPath.resolve("output.log"), Log.Verbosity.INFO, Log.Verbosity.DEBUG);
-                cfg.log.logToFile(config.logPath.resolve("error.log"), Log.Verbosity.ERROR);
-            }
-            cfg.log.addFormatter(new TimeStampFormatter());
-            cfg.log.addFormatter(indentFormatter);
-        });
     }
 
     private void createDir(final Path path) throws IOException {
@@ -158,18 +227,13 @@ public abstract class Evaluator implements ICommand {
         }
     }
 
-    protected void addCSVWriters() {}
-
     public void dispose() {
-        FeatJAR.log().uninstall();
-        if (config.debug.getValue() == 0) {
-            deleteTempFolder();
-        }
+        deleteTempFolder();
     }
 
     private void deleteTempFolder() {
         try {
-            Files.walkFileTree(config.tempPath, new SimpleFileVisitor<Path>() {
+            Files.walkFileTree(tempPath, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
                     Files.delete(file);
@@ -187,80 +251,58 @@ public abstract class Evaluator implements ICommand {
         }
     }
 
-    public abstract void evaluate() throws Exception;
-
     private void printConfigFile() {
-        for (final Property<?> prop : EvaluatorConfig.propertyList) {
-            FeatJAR.log().info(prop.toString());
+        for (final Option<?> opt : getOptions()) {
+            FeatJAR.log().info(opt.toString());
         }
     }
 
-    protected void logSystem() {
+    public void logSystem() {
         final StringBuilder sb = new StringBuilder();
         sb.append("Processing System: ");
-        sb.append(config.systemNames.get(systemIndex));
+        sb.append(systemNames.get(systemIndex));
         sb.append(" (");
         sb.append(systemIndex + 1);
         sb.append("/");
-        sb.append(config.systemNames.size());
+        sb.append(systemNames.size());
         sb.append(")");
         FeatJAR.log().info(sb.toString());
     }
 
-    protected void logSystemRun() {
+    public void logSystemRun() {
         final StringBuilder sb = new StringBuilder();
         sb.append("Processing System: ");
-        sb.append(config.systemNames.get(systemIndex));
+        sb.append(systemNames.get(systemIndex));
         sb.append(" (");
         sb.append(systemIndex + 1);
         sb.append("/");
-        sb.append(config.systemNames.size());
+        sb.append(systemNames.size());
         sb.append(") - ");
-        sb.append(systemIteration + 1);
+        sb.append(systemIteration);
         sb.append("/");
-        sb.append(config.systemIterations.getValue());
+        sb.append(systemIterationMax);
         FeatJAR.log().info(sb.toString());
-    }
-
-    protected CSVFile addCSVWriter(String fileName, List<String> csvHeader) {
-        final CSVFile existingCSVFile = csvWriterList.get(fileName);
-        if (existingCSVFile == null) {
-            final CSVFile csvFile;
-            try {
-                csvFile = new CSVFile(config.csvPath.resolve(fileName));
-            } catch (final IOException e) {
-                FeatJAR.log().error(e);
-                return null;
-            }
-            csvFile.setHeaderFields(csvHeader);
-            csvWriterList.put(fileName, csvFile);
-            return csvFile;
-        } else {
-            return existingCSVFile;
-        }
-    }
-
-    protected void extendCSVWriter(String fileName, List<String> csvHeader) {
-        final CSVFile existingCSVFile = csvWriterList.get(fileName);
-        if (existingCSVFile != null) {
-            extendCSVWriter(existingCSVFile, csvHeader);
-        }
-    }
-
-    protected void extendCSVWriter(CSVFile writer, List<String> csvHeader) {
-        for (final String headerValue : csvHeader) {
-            writer.addHeaderField(headerValue);
-        }
     }
 
     protected final void writeCSV(CSVFile writer, Consumer<CSVFile> writing) {
         writer.newLine();
         try {
-            writing.accept(writer);
-        } catch (final Exception e) {
-            writer.removeLastLine();
-            throw e;
+        	writing.accept(writer);
+        	writer.flush();
+        } catch (Exception e) {
+        	writer.removeLastLine();
         }
-        writer.flush();
     }
+
+    public CSVFile addCSVWriter(String fileName, String... csvHeader) throws IOException {
+        long count = Files.walk(csvPath)
+        	.filter(p -> p.getFileName().toString().matches(Pattern.quote(fileName) + "(-\\d+)?[.]csv"))
+        	.count();
+        final Path csvFilePath = csvPath.resolve(fileName + "-" + count + ".csv");
+		final CSVFile csvWriter = new CSVFile(csvFilePath);
+        csvWriter.setHeaderFields(csvHeader);
+        csvWriter.flush();
+        return csvWriter;
+    }
+
 }

@@ -23,21 +23,23 @@ package de.featjar.evaluation;
 import java.io.IOException;
 import java.nio.file.Files;
 
-public class OutputCleaner extends Evaluator {
+import de.featjar.base.FeatJAR;
+
+/**
+ * TODO documentation
+ *
+ * @author Sebastian Krieter
+ */
+public class OutputCleaner implements EvaluationPhase {
 
     @Override
-    public void evaluate() throws IOException {
-        Files.deleteIfExists(config.outputRootPath.resolve(".current"));
+    public void run(Evaluator evaluator) throws IOException {
+        Files.deleteIfExists(evaluator.outputRootPath.resolve(".current"));
         FeatJAR.log().info("Reset current output path.");
     }
 
     @Override
     public String getName() {
-        return "eval-clean";
-    }
-
-    @Override
-    public String getDescription() {
-        return "Cleans current evaluation results";
+        return "clean";
     }
 }

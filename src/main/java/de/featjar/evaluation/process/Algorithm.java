@@ -23,11 +23,10 @@ package de.featjar.evaluation.process;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import de.featjar.evaluation.streams.IOutputReader;
 
-public abstract class Algorithm<R> {
+public abstract class Algorithm<R> implements IOutputReader {
 
     protected int iterations = -1;
 
