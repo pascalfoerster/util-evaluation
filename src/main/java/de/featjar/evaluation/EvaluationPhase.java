@@ -27,11 +27,13 @@ import de.featjar.base.extension.IExtension;
  *
  * @author Sebastian Krieter
  */
-public interface EvaluationPhase extends IExtension {
+public interface EvaluationPhase<T extends Evaluator> extends IExtension {
 
     default String getName() {
         return getIdentifier();
     }
 
-    void run(Evaluator evaluator) throws Exception;
+    void run(T evaluator) throws Exception;
+
+    default void optionLoop(T evaluator, int lastOptionChanged) {}
 }

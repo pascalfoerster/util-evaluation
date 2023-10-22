@@ -29,7 +29,7 @@ import java.nio.file.Files;
  *
  * @author Sebastian Krieter
  */
-public class OutputCleaner implements EvaluationPhase {
+public class OutputCleaner implements EvaluationPhase<Evaluator> {
 
     @Override
     public void run(Evaluator evaluator) throws IOException {
@@ -41,4 +41,7 @@ public class OutputCleaner implements EvaluationPhase {
     public String getName() {
         return "clean";
     }
+
+    @Override
+    public void optionLoop(Evaluator evaluator, int lastOptionChanged) {}
 }

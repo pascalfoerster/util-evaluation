@@ -44,6 +44,11 @@ public class ModelReader<T> {
     private Path pathToFiles;
     private IFormatSupplier<T> formatSupplier;
 
+    public ModelReader(Path pathToFiles, IFormatSupplier<T> formatSupplier) {
+        this.pathToFiles = pathToFiles;
+        this.formatSupplier = formatSupplier;
+    }
+
     public final Result<T> read(final String name) {
         Result<T> fm = null;
 

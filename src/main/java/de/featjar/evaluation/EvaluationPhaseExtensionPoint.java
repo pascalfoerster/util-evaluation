@@ -20,6 +20,7 @@
  */
 package de.featjar.evaluation;
 
+import de.featjar.base.FeatJAR;
 import de.featjar.base.extension.AExtensionPoint;
 
 /**
@@ -27,11 +28,8 @@ import de.featjar.base.extension.AExtensionPoint;
  *
  * @author Sebastian Krieter
  */
-public class EvaluationPhaseExtensionPoint extends AExtensionPoint<EvaluationPhase> {
-
-    private static EvaluationPhaseExtensionPoint instance = new EvaluationPhaseExtensionPoint();
-
+public class EvaluationPhaseExtensionPoint extends AExtensionPoint<EvaluationPhase<?>> {
     public static EvaluationPhaseExtensionPoint getInstance() {
-        return instance;
+        return FeatJAR.extensionPoint(EvaluationPhaseExtensionPoint.class);
     }
 }

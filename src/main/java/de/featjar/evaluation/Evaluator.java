@@ -21,10 +21,12 @@
 package de.featjar.evaluation;
 
 import de.featjar.base.FeatJAR;
+import de.featjar.base.cli.AListOption;
 import de.featjar.base.cli.ICommand;
-import de.featjar.base.cli.IOptionInput;
 import de.featjar.base.cli.ListOption;
 import de.featjar.base.cli.Option;
+import de.featjar.base.cli.OptionList;
+import de.featjar.base.cli.RangeOption;
 import de.featjar.base.io.csv.CSVFile;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -35,6 +37,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
@@ -46,19 +49,26 @@ import java.util.regex.Pattern;
  */
 public abstract class Evaluator implements ICommand {
 
-    public final Option<Path> modelsPathProperty = new Option<>("models", Option.PathParser)
+    public static final Option<Path> modelsPathProperty = new Option<>("models", Option.PathParser)
             .setDefaultValue(Path.of("models"))
             .setValidator(Option.PathValidator);
-    public final Option<Path> resourcesPathProperty = new Option<>("resources", Option.PathParser)
+    public static final Option<Path> resourcesPathProperty = new Option<>("resources", Option.PathParser)
             .setDefaultValue(Path.of("resources"))
             .setValidator(Option.PathValidator);
 
-    public final ListOption<String> phases = new ListOption<>("phases", Option.StringParser);
-    public final Option<Long> timeout = new Option<>("timeout", Option.LongParser, Long.MAX_VALUE);
-    public final Option<Long> randomSeed = new Option<>("seed", Option.LongParser);
+    public static final ListOption<String> phases = new ListOption<>("phases", Option.StringParser);
+    public static final Option<Long> timeout = new Option<>("timeout", Option.LongParser, Long.MAX_VALUE);
+    public static final Option<Long> randomSeed = new Option<>("seed", Option.LongParser);
 
-    public final Option<Integer> systemIterations = new Option<>("systemIterations", Option.IntegerParser, 1);
-    public final Option<Integer> algorithmIterations = new Option<>("algorithmIterations", Option.IntegerParser, 1);
+    public static final ListOption<String> systemNamesOption = new ListOption<>("systemNames", Option.StringParser);
+    public static final ListOption<String> systemsOption = new ListOption<>("systems", Option.StringParser);
+    public static final RangeOption systemIterationsOption = new RangeOption("systemIterations");
+    public static final RangeOption algorithmIterationsOption = new RangeOption("algorithmIterations");
+
+    public OptionList optionParser;
+    private AListOption<?>[] loptions;
+    public ArrayList<int[]> optionIndicesList;
+    public int[] optionIndices;
 
     @Override
     public List<Option<?>> getOptions() {
@@ -70,8 +80,69 @@ public abstract class Evaluator implements ICommand {
                 phases,
                 timeout,
                 randomSeed,
-                systemIterations,
-                algorithmIterations);
+                systemNamesOption,
+                systemsOption,
+                systemIterationsOption,
+                algorithmIterationsOption);
+    }
+
+    public OptionList getOptionParser() {
+        return optionParser;
+    }
+
+    public <T> T getOption(Option<T> option) {
+        return optionParser.get(option).orElseThrow();
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends Evaluator> void optionLoop(EvaluationPhase<T> phase, AListOption<?>... loptions) {
+        this.loptions = loptions;
+        optionIndicesList = new ArrayList<>();
+        int[] values = new int[loptions.length + 1];
+        Arrays.fill(values, -1);
+        cross(0, values, 0);
+        FeatJAR.log().info("Start");
+        optionIndicesList.stream()
+                .peek(o -> {
+                    optionIndices = o;
+                    FeatJAR.log().info(Arrays.toString(o));
+                })
+                .forEach(l -> phase.optionLoop((T) this, l[l.length - 1]));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T cast(int index) {
+        int optionIndex = optionIndices[index];
+        return optionIndex < 0
+                ? null
+                : (T) optionParser.get(loptions[index]).orElseThrow().get(optionIndex);
+    }
+
+    public void run(Consumer<int[]> runner) {
+        FeatJAR.log().info("Start");
+        optionIndicesList.stream()
+                .peek(o -> {
+                    optionIndices = o;
+                    FeatJAR.log().info(Arrays.toString(o));
+                })
+                .forEach(runner);
+    }
+
+    private void cross(int optionIndex, int[] values, int lastChange) {
+        if (optionIndex > values.length - 2) {
+            values[values.length - 1] = lastChange;
+            optionIndicesList.add(Arrays.copyOf(values, values.length));
+        } else {
+            int size = optionParser.get(loptions[optionIndex]).orElseThrow().size();
+            if (size > 0) {
+                values[optionIndex] = 0;
+                cross(optionIndex + 1, values, lastChange);
+                for (int i = 1; i < size; i++) {
+                    values[optionIndex] = i;
+                    cross(optionIndex + 1, values, optionIndex);
+                }
+            }
+        }
     }
 
     private static final String DATE_FORMAT_STRING = "yyyy-MM-dd_HH-mm-ss";
@@ -88,7 +159,7 @@ public abstract class Evaluator implements ICommand {
     public List<String> systemNames;
     public List<Integer> systemIDs;
 
-    public int systemIndex, systemIteration, systemIndexMax, systemIterationMax;
+    public int systemIndex, systemIteration, algorithmIteration;
 
     public String getTimeStamp() {
         return DATE_FORMAT.format(new Timestamp(System.currentTimeMillis()));
@@ -153,18 +224,17 @@ public abstract class Evaluator implements ICommand {
     }
 
     @Override
-    public void run(IOptionInput optionParser) {
+    public void run(OptionList optionParser) {
+        this.optionParser = optionParser;
         try {
-            init(optionParser);
+            init();
             phaseLoop:
             for (String phase : optionParser.get(phases).get()) {
-                for (EvaluationPhase phaseExtension :
+                printConfigFile();
+                for (EvaluationPhase<?> phaseExtension :
                         EvaluationPhaseExtensionPoint.getInstance().getExtensions()) {
-                    if (phaseExtension.getName().equals(phase)) {
-                        updateSubPaths();
-                        FeatJAR.log().info("Running " + phaseExtension.getName());
-                        printConfigFile();
-                        phaseExtension.run(this);
+                    if (phaseExtension.getIdentifier().equals(phase)) {
+                        runPhase(phaseExtension);
                         continue phaseLoop;
                     }
                 }
@@ -177,13 +247,18 @@ public abstract class Evaluator implements ICommand {
         }
     }
 
-    public void init(IOptionInput optionInput) throws Exception {
-        outputRootPath = optionInput.get(OUTPUT_OPTION).get();
-        resourcePath = optionInput.get(resourcesPathProperty).get();
-        modelPath = optionInput.get(modelsPathProperty).get();
-        readSystemNames();
-        systemIterationMax = optionInput.get(systemIterations).get();
-        systemIndexMax = systemNames.size();
+    @SuppressWarnings("unchecked")
+    private <T extends Evaluator> void runPhase(EvaluationPhase<T> phaseExtension) throws IOException, Exception {
+        updateSubPaths();
+        FeatJAR.log().info("Running " + phaseExtension.getName());
+        phaseExtension.run((T) this);
+    }
+
+    public void init() throws Exception {
+        outputRootPath = optionParser.get(OUTPUT_OPTION).get();
+        resourcePath = optionParser.get(resourcesPathProperty).get();
+        modelPath = optionParser.get(modelsPathProperty).get();
+        systemNames = optionParser.get(systemNamesOption).get();
         FeatJAR.log().info("Running " + this.getClass().getSimpleName());
     }
 
@@ -231,22 +306,24 @@ public abstract class Evaluator implements ICommand {
     }
 
     private void deleteTempFolder() {
-        try {
-            Files.walkFileTree(tempPath, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Files.delete(file);
-                    return FileVisitResult.CONTINUE;
-                }
+        if (tempPath != null) {
+            try {
+                Files.walkFileTree(tempPath, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        Files.delete(file);
+                        return FileVisitResult.CONTINUE;
+                    }
 
-                @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                    Files.deleteIfExists(dir);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        } catch (final IOException e) {
-            e.printStackTrace();
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        Files.deleteIfExists(dir);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -279,16 +356,17 @@ public abstract class Evaluator implements ICommand {
         sb.append(") - ");
         sb.append(systemIteration);
         sb.append("/");
-        sb.append(systemIterationMax);
+        //        sb.append(systemIterationMax);
         FeatJAR.log().info(sb.toString());
     }
 
-    protected final void writeCSV(CSVFile writer, Consumer<CSVFile> writing) {
+    public final void writeCSV(CSVFile writer, Consumer<CSVFile> writing) {
         writer.newLine();
         try {
             writing.accept(writer);
             writer.flush();
         } catch (Exception e) {
+            FeatJAR.log().error(e);
             writer.removeLastLine();
         }
     }
