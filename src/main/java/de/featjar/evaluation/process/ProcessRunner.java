@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2023 Sebastian Krieter
+ * Copyright (C) 2023 FeatJAR-Development-Team
  *
- * This file is part of evaluation.
+ * This file is part of FeatJAR-evaluation.
  *
  * evaluation is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -16,15 +16,15 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with evaluation. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatJAR/evaluation> for further information.
+ * See <https://github.com/FeatJAR> for further information.
  */
 package de.featjar.evaluation.process;
 
+import de.featjar.base.FeatJAR;
 import de.featjar.evaluation.streams.ErrStreamCollector;
 import de.featjar.evaluation.streams.ErrStreamReader;
 import de.featjar.evaluation.streams.OutStreamReader;
 import de.featjar.evaluation.streams.StreamRedirector;
-import de.featjar.util.logging.Logger;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -42,7 +42,7 @@ public class ProcessRunner {
             System.gc();
             algorithm.preProcess();
 
-            Logger.logDebug(algorithm.getCommand());
+            FeatJAR.log().debug(algorithm.getCommand());
 
             final List<String> command = algorithm.getCommandElements();
             if (!command.isEmpty()) {
@@ -75,16 +75,16 @@ public class ProcessRunner {
                     if (process != null) {
                         process.destroyForcibly();
                     }
-                    Logger.logInfo("In time: " + terminatedInTime + ", no error: " + noError);
+                    FeatJAR.log().info("In time: " + terminatedInTime + ", no error: " + noError);
                 }
             } else {
                 result.setTerminatedInTime(false);
                 result.setNoError(false);
                 result.setTime(Result.INVALID_TIME);
-                Logger.logInfo("Invalid command");
+                FeatJAR.log().info("Invalid command");
             }
         } catch (final Exception e) {
-            Logger.logError(e);
+            FeatJAR.log().error(e);
             result.setTerminatedInTime(false);
             result.setNoError(false);
             result.setTime(Result.INVALID_TIME);
@@ -94,13 +94,13 @@ public class ProcessRunner {
                 result.setResult(algorithm.parseResults());
             }
         } catch (final Exception e) {
-            Logger.logError(e);
+            FeatJAR.log().error(e);
             result.setNoError(false);
         }
         try {
             algorithm.postProcess();
         } catch (final Exception e) {
-            Logger.logError(e);
+            FeatJAR.log().error(e);
         }
         return result;
     }

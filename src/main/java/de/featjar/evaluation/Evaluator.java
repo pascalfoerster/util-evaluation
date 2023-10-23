@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2023 Sebastian Krieter
+ * Copyright (C) 2023 FeatJAR-Development-Team
  *
- * This file is part of evaluation.
+ * This file is part of FeatJAR-evaluation.
  *
  * evaluation is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -16,69 +16,137 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with evaluation. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatJAR/evaluation> for further information.
+ * See <https://github.com/FeatJAR> for further information.
  */
 package de.featjar.evaluation;
 
-import de.featjar.evaluation.properties.ListProperty;
-import de.featjar.evaluation.properties.Property;
-import de.featjar.evaluation.properties.Seed;
-import de.featjar.util.cli.CLIFunction;
-import de.featjar.util.io.IO;
-import de.featjar.util.io.csv.CSVWriter;
-import de.featjar.util.io.namelist.NameListFormat;
-import de.featjar.util.logging.Logger;
-import de.featjar.util.logging.TabFormatter;
-import de.featjar.util.logging.TimeStampFormatter;
-import java.io.FileNotFoundException;
+import de.featjar.base.FeatJAR;
+import de.featjar.base.cli.AListOption;
+import de.featjar.base.cli.ICommand;
+import de.featjar.base.cli.ListOption;
+import de.featjar.base.cli.Option;
+import de.featjar.base.cli.OptionList;
+import de.featjar.base.cli.RangeOption;
+import de.featjar.base.io.csv.CSVFile;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
+import java.util.function.Consumer;
+import java.util.regex.Pattern;
 
 /**
  * TODO documentation
  *
  * @author Sebastian Krieter
  */
-public abstract class Evaluator implements CLIFunction {
+public abstract class Evaluator implements ICommand {
+
+    public static final Option<Path> modelsPathProperty = new Option<>("models", Option.PathParser)
+            .setDefaultValue(Path.of("models"))
+            .setValidator(Option.PathValidator);
+    public static final Option<Path> resourcesPathProperty = new Option<>("resources", Option.PathParser)
+            .setDefaultValue(Path.of("resources"))
+            .setValidator(Option.PathValidator);
+
+    public static final ListOption<String> phases = new ListOption<>("phases", Option.StringParser);
+    public static final Option<Long> timeout = new Option<>("timeout", Option.LongParser, Long.MAX_VALUE);
+    public static final Option<Long> randomSeed = new Option<>("seed", Option.LongParser);
+
+    public static final ListOption<String> systemNamesOption = new ListOption<>("systemNames", Option.StringParser);
+    public static final ListOption<String> systemsOption = new ListOption<>("systems", Option.StringParser);
+    public static final RangeOption systemIterationsOption = new RangeOption("systemIterations");
+    public static final RangeOption algorithmIterationsOption = new RangeOption("algorithmIterations");
+
+    public OptionList optionParser;
+    private AListOption<?>[] loptions;
+    public ArrayList<int[]> optionIndicesList;
+    public int[] optionIndices;
+
+    @Override
+    public List<Option<?>> getOptions() {
+        return List.of(
+                INPUT_OPTION,
+                OUTPUT_OPTION,
+                modelsPathProperty,
+                resourcesPathProperty,
+                phases,
+                timeout,
+                randomSeed,
+                systemNamesOption,
+                systemsOption,
+                systemIterationsOption,
+                algorithmIterationsOption);
+    }
+
+    public OptionList getOptionParser() {
+        return optionParser;
+    }
+
+    public <T> T getOption(Option<T> option) {
+        return optionParser.get(option).orElseThrow();
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends Evaluator> void optionLoop(EvaluationPhase<T> phase, AListOption<?>... loptions) {
+        this.loptions = loptions;
+        optionIndicesList = new ArrayList<>();
+        int[] values = new int[loptions.length + 1];
+        Arrays.fill(values, -1);
+        cross(0, values, 0);
+        FeatJAR.log().info("Start");
+        optionIndicesList.stream()
+                .peek(o -> {
+                    optionIndices = o;
+                    FeatJAR.log().info(Arrays.toString(o));
+                })
+                .forEach(l -> phase.optionLoop((T) this, l[l.length - 1]));
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> T cast(int index) {
+        int optionIndex = optionIndices[index];
+        return optionIndex < 0
+                ? null
+                : (T) optionParser.get(loptions[index]).orElseThrow().get(optionIndex);
+    }
+
+    public void run(Consumer<int[]> runner) {
+        FeatJAR.log().info("Start");
+        optionIndicesList.stream()
+                .peek(o -> {
+                    optionIndices = o;
+                    FeatJAR.log().info(Arrays.toString(o));
+                })
+                .forEach(runner);
+    }
+
+    private void cross(int optionIndex, int[] values, int lastChange) {
+        if (optionIndex > values.length - 2) {
+            values[values.length - 1] = lastChange;
+            optionIndicesList.add(Arrays.copyOf(values, values.length));
+        } else {
+            int size = optionParser.get(loptions[optionIndex]).orElseThrow().size();
+            if (size > 0) {
+                values[optionIndex] = 0;
+                cross(optionIndex + 1, values, lastChange);
+                for (int i = 1; i < size; i++) {
+                    values[optionIndex] = i;
+                    cross(optionIndex + 1, values, optionIndex);
+                }
+            }
+        }
+    }
 
     private static final String DATE_FORMAT_STRING = "yyyy-MM-dd_HH-mm-ss";
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT_STRING);
-
-    private static final String DEFAULT_RESOURCE_DIRECTORY = "";
-    private static final String DEFAULT_MODELS_DIRECTORY = "models";
-    private static final String DEFAULT_CONFIG_DIRECTORY = "config";
-    private static final String DEFAULT_OUTPUT_DIRECTORY = "output";
-
-    protected static final List<Property<?>> propertyList = new LinkedList<>();
-
-    public final Property<String> outputPathProperty =
-            new Property<>("output", Property.StringConverter, DEFAULT_OUTPUT_DIRECTORY);
-    public final Property<String> modelsPathProperty =
-            new Property<>("models", Property.StringConverter, DEFAULT_MODELS_DIRECTORY);
-    public final Property<String> resourcesPathProperty =
-            new Property<>("resources", Property.StringConverter, DEFAULT_RESOURCE_DIRECTORY);
-
-    public final ListProperty<String> phases = new ListProperty<>("phases", Property.StringConverter);
-    public final Property<Integer> debug = new Property<>("debug", Property.IntegerConverter);
-    public final Property<Integer> verbosity = new Property<>("verbosity", Property.IntegerConverter);
-    public final Property<Long> timeout = new Property<>("timeout", Property.LongConverter, Long.MAX_VALUE);
-    public final Seed randomSeed = new Seed();
-
-    public final Property<Integer> systemIterations = new Property<>("systemIterations", Property.IntegerConverter, 1);
-    public final Property<Integer> algorithmIterations =
-            new Property<>("algorithmIterations", Property.IntegerConverter, 1);
 
     public Path configPath;
     public Path outputPath;
@@ -91,17 +159,7 @@ public abstract class Evaluator implements CLIFunction {
     public List<String> systemNames;
     public List<Integer> systemIDs;
 
-    public final TabFormatter tabFormatter = new TabFormatter();
-
-    public int systemIndex, systemIteration, systemIndexMax, systemIterationMax;
-
-    public static void addProperty(Property<?> property) {
-        propertyList.add(property);
-    }
-
-    public void readConfig(String name) throws Exception {
-        readConfigFile(name);
-    }
+    public int systemIndex, systemIteration, algorithmIteration;
 
     public String getTimeStamp() {
         return DATE_FORMAT.format(new Timestamp(System.currentTimeMillis()));
@@ -128,14 +186,14 @@ public abstract class Evaluator implements CLIFunction {
                     currentOutputMarker = firstLine.trim();
                 }
             } catch (final Exception e) {
-                Logger.logError(e);
+                FeatJAR.log().error(e);
             }
         }
 
         try {
             Files.createDirectories(outputRootPath);
         } catch (final IOException e) {
-            Logger.logError(e);
+            FeatJAR.log().error(e);
         }
 
         if (currentOutputMarker == null) {
@@ -143,82 +201,65 @@ public abstract class Evaluator implements CLIFunction {
             try {
                 Files.write(currentOutputMarkerFile, currentOutputMarker.getBytes());
             } catch (final IOException e) {
-                Logger.logError(e);
+                FeatJAR.log().error(e);
             }
         }
         return currentOutputMarker;
     }
 
-    public void readSystemNames() {
-        final List<NameListFormat.NameEntry> names = IO.load(configPath.resolve("models.txt"), new NameListFormat())
-                .orElse(Collections.emptyList(), Logger::logProblems);
-        systemNames = new ArrayList<>(names.size());
-        systemIDs = new ArrayList<>(names.size());
+    public void readSystemNames() throws IOException {
+        List<String> lines = Files.readAllLines(configPath.resolve("models.txt"));
 
-        for (final NameListFormat.NameEntry nameEntry : names) {
-            systemNames.add(nameEntry.getName());
-            systemIDs.add(nameEntry.getID());
-        }
-    }
+        systemNames = new ArrayList<>(lines.size());
+        systemIDs = new ArrayList<>(lines.size());
 
-    private Properties readConfigFile(String configName) throws Exception {
-        final Path path = configPath.resolve(configName + ".properties");
-        System.out.print("Reading config file. (" + path.toString() + ") ... ");
-        final Properties properties = new Properties();
-        try {
-            properties.load(Files.newInputStream(path));
-            for (final Property<?> prop : propertyList) {
-                final String value = properties.getProperty(prop.getKey());
-                if (value != null) {
-                    prop.setValue(value);
-                }
+        int lineID = 1;
+        for (final String line : lines) {
+            if (line.matches("[^#\t].*")) {
+                systemNames.add(line);
+                systemIDs.add(lineID);
             }
-            System.out.println("Success!");
-            return properties;
-        } catch (final IOException e) {
-            System.out.println("Fail! -> " + e.getMessage());
-            System.err.println(e);
-            throw e;
+            lineID++;
         }
     }
 
     @Override
-    public void run(List<String> args) {
-        if (args.size() < 1) {
-            System.out.println("Configuration path not specified!");
-            return;
-        }
-        Logger.logInfo(System.getProperty("user.dir"));
+    public void run(OptionList optionParser) {
+        this.optionParser = optionParser;
         try {
-            init(args.get(0), args.size() > 1 ? args.get(1) : DEFAULT_CONFIG_DIRECTORY);
+            init();
             phaseLoop:
-            for (String phase : phases.getValue()) {
-                for (EvaluationPhase phaseExtension :
+            for (String phase : optionParser.get(phases).get()) {
+                printConfigFile();
+                for (EvaluationPhase<?> phaseExtension :
                         EvaluationPhaseExtensionPoint.getInstance().getExtensions()) {
-                    if (phaseExtension.getName().equals(phase)) {
-                        updateSubPaths();
-                        Logger.logInfo("Running " + phaseExtension.getName());
-                        printConfigFile();
-                        phaseExtension.run(this);
+                    if (phaseExtension.getIdentifier().equals(phase)) {
+                        runPhase(phaseExtension);
                         continue phaseLoop;
                     }
                 }
-                Logger.logError("Phase \"" + phase + "\" not found.");
+                FeatJAR.log().error("Phase \"" + phase + "\" not found.");
             }
         } catch (final Exception e) {
-            Logger.logError(e);
+            FeatJAR.log().error(e);
         } finally {
             dispose();
         }
     }
 
-    public void init(String configPath, String configName) throws Exception {
-        this.configPath = Paths.get(configPath);
-        readConfig(configName);
-        initRootPaths();
-        readSystemNames();
-        initConstants();
-        Logger.logInfo("Running " + this.getClass().getSimpleName());
+    @SuppressWarnings("unchecked")
+    private <T extends Evaluator> void runPhase(EvaluationPhase<T> phaseExtension) throws IOException, Exception {
+        updateSubPaths();
+        FeatJAR.log().info("Running " + phaseExtension.getName());
+        phaseExtension.run((T) this);
+    }
+
+    public void init() throws Exception {
+        outputRootPath = optionParser.get(OUTPUT_OPTION).get();
+        resourcePath = optionParser.get(resourcesPathProperty).get();
+        modelPath = optionParser.get(modelsPathProperty).get();
+        systemNames = optionParser.get(systemNamesOption).get();
+        FeatJAR.log().info("Running " + this.getClass().getSimpleName());
     }
 
     private void updateSubPaths() throws IOException {
@@ -226,35 +267,19 @@ public abstract class Evaluator implements CLIFunction {
         try {
             setupDirectories();
         } catch (final IOException e) {
-            Logger.logError("Fail -> Could not create output directory.");
-            Logger.logError(e);
-            throw e;
-        }
-        try {
-            installLogger();
-        } catch (final Exception e) {
-            Logger.logError("Fail -> Could not install logger.");
-            Logger.logError(e);
+            FeatJAR.log().error("Fail -> Could not create output directory.");
+            FeatJAR.log().error(e);
             throw e;
         }
     }
 
-    protected void initRootPaths() {
-        outputRootPath = Paths.get(outputPathProperty.getValue());
-        resourcePath = Paths.get(resourcesPathProperty.getValue());
-        modelPath = resourcePath.resolve(modelsPathProperty.getValue());
-    }
+    protected void initRootPaths() {}
 
     protected void initSubPaths() {
         outputPath = outputRootPath.resolve(readCurrentOutputMarker());
         csvPath = outputPath.resolve("data-" + getTimeStamp());
         tempPath = outputPath.resolve("temp");
         logPath = outputPath.resolve("log-" + getTimeStamp());
-    }
-
-    protected void initConstants() {
-        systemIterationMax = systemIterations.getValue();
-        systemIndexMax = systemNames.size();
     }
 
     protected void setupDirectories() throws IOException {
@@ -264,35 +289,10 @@ public abstract class Evaluator implements CLIFunction {
             createDir(tempPath);
             createDir(logPath);
         } catch (final IOException e) {
-            Logger.logError("Could not create output directory.");
-            Logger.logError(e);
+            FeatJAR.log().error("Could not create output directory.");
+            FeatJAR.log().error(e);
             throw e;
         }
-    }
-
-    private void installLogger() throws FileNotFoundException {
-        Logger.uninstall();
-        Logger.setErrLog(Logger.LogType.ERROR);
-        switch (verbosity.getValue()) {
-            case 0:
-                Logger.setOutLog(Logger.LogType.INFO);
-                break;
-            case 1:
-                Logger.setOutLog(Logger.LogType.INFO, Logger.LogType.DEBUG);
-                break;
-            case 2:
-                Logger.setOutLog(Logger.LogType.INFO, Logger.LogType.DEBUG, Logger.LogType.PROGRESS);
-                break;
-        }
-        if (logPath != null) {
-            final Path outLogFile = logPath.resolve("output.log");
-            Logger.addFileLog(outLogFile, Logger.LogType.INFO, Logger.LogType.DEBUG);
-            final Path errLogFile = logPath.resolve("error.log");
-            Logger.addFileLog(errLogFile, Logger.LogType.ERROR);
-        }
-        Logger.addFormatter(new TimeStampFormatter());
-        Logger.addFormatter(tabFormatter);
-        Logger.install();
     }
 
     private void createDir(final Path path) throws IOException {
@@ -302,38 +302,35 @@ public abstract class Evaluator implements CLIFunction {
     }
 
     public void dispose() {
-        Logger.uninstall();
         deleteTempFolder();
     }
 
     private void deleteTempFolder() {
-        try {
-            Files.walkFileTree(tempPath, new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    Files.delete(file);
-                    return FileVisitResult.CONTINUE;
-                }
+        if (tempPath != null) {
+            try {
+                Files.walkFileTree(tempPath, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        Files.delete(file);
+                        return FileVisitResult.CONTINUE;
+                    }
 
-                @Override
-                public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                    Files.deleteIfExists(dir);
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        } catch (final IOException e) {
-            e.printStackTrace();
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        Files.deleteIfExists(dir);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
     private void printConfigFile() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("Current Configuration: ");
-        for (final Property<?> prop : propertyList) {
-            sb.append("\n\t");
-            sb.append(prop.toString());
+        for (final Option<?> opt : getOptions()) {
+            FeatJAR.log().info(opt.toString());
         }
-        Logger.logInfo(sb.toString());
     }
 
     public void logSystem() {
@@ -345,7 +342,7 @@ public abstract class Evaluator implements CLIFunction {
         sb.append("/");
         sb.append(systemNames.size());
         sb.append(")");
-        Logger.logInfo(sb.toString());
+        FeatJAR.log().info(sb.toString());
     }
 
     public void logSystemRun() {
@@ -359,21 +356,28 @@ public abstract class Evaluator implements CLIFunction {
         sb.append(") - ");
         sb.append(systemIteration);
         sb.append("/");
-        sb.append(systemIterations.getValue());
-        Logger.logInfo(sb.toString());
+        //        sb.append(systemIterationMax);
+        FeatJAR.log().info(sb.toString());
     }
 
-    public CSVWriter addCSVWriter(String fileName, String... csvHeader) {
-        final CSVWriter csvWriter = new CSVWriter();
+    public final void writeCSV(CSVFile writer, Consumer<CSVFile> writing) {
+        writer.newLine();
         try {
-            csvWriter.setOutputDirectory(csvPath);
-            csvWriter.setFileName(fileName);
-        } catch (final IOException e) {
-            Logger.logError(e);
-            return null;
+            writing.accept(writer);
+            writer.flush();
+        } catch (Exception e) {
+            FeatJAR.log().error(e);
+            writer.removeLastLine();
         }
-        csvWriter.setAppend(true);
-        csvWriter.setHeader(csvHeader);
+    }
+
+    public CSVFile addCSVWriter(String fileName, String... csvHeader) throws IOException {
+        long count = Files.walk(csvPath)
+                .filter(p -> p.getFileName().toString().matches(Pattern.quote(fileName) + "(-\\d+)?[.]csv"))
+                .count();
+        final Path csvFilePath = csvPath.resolve(fileName + "-" + count + ".csv");
+        final CSVFile csvWriter = new CSVFile(csvFilePath);
+        csvWriter.setHeaderFields(csvHeader);
         csvWriter.flush();
         return csvWriter;
     }

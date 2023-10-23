@@ -3,12 +3,12 @@ plugins {
 }
 
 dependencies {
-    api 'de.featjar:util'
+    api 'de.featjar:base'
 }
 
 license {
     ext {
         author = 'Sebastian Krieter'
-        url = 'https://github.com/FeatJAR/evaluation'
+        url = 'https://github.com/FeatureIDE/FeatJAR-evaluation'
     }
 }

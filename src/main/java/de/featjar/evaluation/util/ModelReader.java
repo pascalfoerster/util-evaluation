@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2023 Sebastian Krieter
+ * Copyright (C) 2023 FeatJAR-Development-Team
  *
- * This file is part of evaluation.
+ * This file is part of FeatJAR-evaluation.
  *
  * evaluation is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -16,14 +16,14 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with evaluation. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatJAR/evaluation> for further information.
+ * See <https://github.com/FeatJAR> for further information.
  */
 package de.featjar.evaluation.util;
 
-import de.featjar.util.data.Result;
-import de.featjar.util.io.IO;
-import de.featjar.util.io.format.FormatSupplier;
-import de.featjar.util.logging.Logger;
+import de.featjar.base.FeatJAR;
+import de.featjar.base.data.Result;
+import de.featjar.base.io.IO;
+import de.featjar.base.io.format.IFormatSupplier;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.DirectoryStream;
@@ -42,7 +42,12 @@ public class ModelReader<T> {
 
     private String defaultFileName = "model.xml";
     private Path pathToFiles;
-    private FormatSupplier<T> formatSupplier;
+    private IFormatSupplier<T> formatSupplier;
+
+    public ModelReader(Path pathToFiles, IFormatSupplier<T> formatSupplier) {
+        this.pathToFiles = pathToFiles;
+        this.formatSupplier = formatSupplier;
+    }
 
     public final Result<T> read(final String name) {
         Result<T> fm = null;
@@ -78,11 +83,11 @@ public class ModelReader<T> {
         this.defaultFileName = defaultFileName;
     }
 
-    public FormatSupplier<T> getFormatSupplier() {
+    public IFormatSupplier<T> getFormatSupplier() {
         return formatSupplier;
     }
 
-    public void setFormatSupplier(FormatSupplier<T> formatSupplier) {
+    public void setFormatSupplier(IFormatSupplier<T> formatSupplier) {
         this.formatSupplier = formatSupplier;
     }
 
@@ -92,7 +97,7 @@ public class ModelReader<T> {
 
     public Result<T> readFromFolder(final Path rootPath, final String name) {
         final Path modelFolder = rootPath.resolve(name);
-        Logger.logDebug("Trying to load from folder " + modelFolder);
+        FeatJAR.log().debug("Trying to load from folder " + modelFolder);
         if (Files.exists(modelFolder) && Files.isDirectory(modelFolder)) {
             final Path path = modelFolder.resolve(defaultFileName);
             if (Files.exists(path)) {
@@ -106,12 +111,12 @@ public class ModelReader<T> {
     }
 
     public Result<T> readFromFile(final Path rootPath, final String name) {
-        Logger.logDebug("Trying to load from file " + name);
+        FeatJAR.log().debug("Trying to load from file " + name);
         Result<T> loadedFm = loadFile(rootPath.resolve(name));
         if (loadedFm.isPresent()) {
             return loadedFm;
         } else {
-            Logger.logDebug(loadedFm.getProblems().get(0));
+            FeatJAR.log().debug(loadedFm.getProblems().get(0));
         }
         final Filter<Path> fileFilter = file -> Files.isReadable(file)
                 && Files.isRegularFile(file)
@@ -120,7 +125,7 @@ public class ModelReader<T> {
             final Iterator<Path> iterator = files.iterator();
             while (iterator.hasNext()) {
                 final Path next = iterator.next();
-                Logger.logDebug("Trying to load from file " + next);
+                FeatJAR.log().debug("Trying to load from file " + next);
                 loadedFm = loadFile(next);
                 if (loadedFm.isPresent()) {
                     return loadedFm;
@@ -128,7 +133,7 @@ public class ModelReader<T> {
             }
             return Result.empty();
         } catch (final IOException e) {
-            Logger.logError(e);
+            FeatJAR.log().error(e);
         }
         return Result.empty();
     }
@@ -139,7 +144,7 @@ public class ModelReader<T> {
                 && file.getFileName().toString().matches(".*[.]zip\\Z");
         try (DirectoryStream<Path> files = Files.newDirectoryStream(rootPath, fileFilter)) {
             for (final Path path : files) {
-                Logger.logDebug("Trying to load from zip file " + path);
+                FeatJAR.log().debug("Trying to load from zip file " + path);
                 final URI uri = URI.create("jar:" + path.toUri().toString());
                 try (final FileSystem zipFs = FileSystems.newFileSystem(uri, Collections.<String, Object>emptyMap())) {
                     for (final Path root : zipFs.getRootDirectories()) {
@@ -153,16 +158,12 @@ public class ModelReader<T> {
                         }
                     }
                 } catch (final IOException e) {
-                    Logger.logError(e);
+                    FeatJAR.log().error(e);
                 }
             }
         } catch (final IOException e) {
-            Logger.logError(e);
+            FeatJAR.log().error(e);
         }
         return Result.empty();
-    }
-
-    public void dispose() {
-        Logger.uninstall();
     }
 }

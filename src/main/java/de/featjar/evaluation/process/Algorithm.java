@@ -1,7 +1,7 @@
 /*
- * Copyright (C) 2023 Sebastian Krieter
+ * Copyright (C) 2023 FeatJAR-Development-Team
  *
- * This file is part of evaluation.
+ * This file is part of FeatJAR-evaluation.
  *
  * evaluation is free software: you can redistribute it and/or modify it
  * under the terms of the GNU Lesser General Public License as published by
@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with evaluation. If not, see <https://www.gnu.org/licenses/>.
  *
- * See <https://github.com/FeatJAR/evaluation> for further information.
+ * See <https://github.com/FeatJAR> for further information.
  */
 package de.featjar.evaluation.process;
 
@@ -24,7 +24,6 @@ import de.featjar.evaluation.streams.IOutputReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public abstract class Algorithm<R> implements IOutputReader {
 
@@ -69,23 +68,6 @@ public abstract class Algorithm<R> implements IOutputReader {
 
     public String getFullName() {
         return getName() + "_" + getParameterSettings();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if ((obj == null) || (getClass() != obj.getClass())) {
-            return false;
-        }
-        final Algorithm<?> other = (Algorithm<?>) obj;
-        return Objects.equals(getFullName(), other.getFullName());
-    }
-
-    @Override
-    public int hashCode() {
-        return getFullName().hashCode();
     }
 
     @Override
