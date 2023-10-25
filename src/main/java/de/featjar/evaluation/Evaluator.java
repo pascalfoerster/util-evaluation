@@ -360,7 +360,8 @@ public abstract class Evaluator implements ICommand {
     private void printConfigFile() {
         for (final Option<?> opt : getOptions()) {
             FeatJAR.log()
-                    .info(opt.getName() + ": " + String.valueOf(optionParser.get(opt))
+                    .info(opt.getName() + ": "
+                            + String.valueOf(optionParser.get(opt).orElse(null))
                             + (optionParser.has(opt) ? "" : " (default)"));
         }
     }
