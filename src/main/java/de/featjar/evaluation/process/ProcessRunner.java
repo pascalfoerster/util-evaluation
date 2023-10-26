@@ -42,7 +42,7 @@ public class ProcessRunner {
             System.gc();
             algorithm.preProcess();
 
-            FeatJAR.log().debug(algorithm.getCommand());
+            //            FeatJAR.log().debug(algorithm.getCommand());
 
             final List<String> command = algorithm.getCommandElements();
             if (!command.isEmpty()) {
