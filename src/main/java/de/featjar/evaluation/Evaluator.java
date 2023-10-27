@@ -39,6 +39,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -206,7 +207,6 @@ public abstract class Evaluator implements ICommand {
     public Path csvPath;
     public Path genPath;
     public Path tempPath;
-    public Path logPath;
     public List<String> systemNames;
     public List<Integer> systemIDs;
 
@@ -258,7 +258,6 @@ public abstract class Evaluator implements ICommand {
                 for (EvaluationPhase<?> phaseExtension :
                         EvaluationPhaseExtensionPoint.getInstance().getExtensions()) {
                     if (phaseExtension.getIdentifier().equals(phase)) {
-                        printConfigFile();
                         runPhase(phaseExtension);
                         continue phaseLoop;
                     }
@@ -275,7 +274,18 @@ public abstract class Evaluator implements ICommand {
     @SuppressWarnings("unchecked")
     private <T extends Evaluator> void runPhase(EvaluationPhase<T> phaseExtension) throws IOException, Exception {
         updateSubPaths();
+
         FeatJAR.log().info("Running " + phaseExtension.getName());
+        Properties properties = new Properties();
+        for (final Option<?> opt : getOptions()) {
+            String name = opt.getName();
+            String value = String.valueOf(optionParser.get(opt).orElse(null));
+            String isDefaultValue = optionParser.has(opt) ? "" : " (default)";
+            properties.put(name, value);
+            FeatJAR.log().info("%s: %s%s", name, value, isDefaultValue);
+        }
+        properties.store(Files.newOutputStream(csvPath.resolve("config.properties")), null);
+
         phaseExtension.run((T) this);
     }
 
@@ -308,7 +318,6 @@ public abstract class Evaluator implements ICommand {
         csvPath = outputPath.resolve("data").resolve("data-" + getTimeStamp());
         tempPath = outputPath.resolve("temp");
         genPath = outputPath.resolve("gen");
-        logPath = outputPath.resolve("log").resolve("log-" + getTimeStamp());
     }
 
     protected void setupDirectories() throws IOException {
@@ -317,7 +326,6 @@ public abstract class Evaluator implements ICommand {
             createDir(csvPath);
             createDir(genPath);
             createDir(tempPath);
-            createDir(logPath);
         } catch (final IOException e) {
             FeatJAR.log().error("Could not create output directory.");
             FeatJAR.log().error(e);
@@ -354,15 +362,6 @@ public abstract class Evaluator implements ICommand {
             } catch (final IOException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    private void printConfigFile() {
-        for (final Option<?> opt : getOptions()) {
-            FeatJAR.log()
-                    .info(opt.getName() + ": "
-                            + String.valueOf(optionParser.get(opt).orElse(null))
-                            + (optionParser.has(opt) ? "" : " (default)"));
         }
     }
 
