@@ -21,27 +21,18 @@
 package de.featjar.evaluation;
 
 import de.featjar.base.FeatJAR;
-import java.io.IOException;
 import java.nio.file.Files;
 
 /**
- * TODO documentation
+ * Reset current output path.
  *
  * @author Sebastian Krieter
  */
-public class OutputCleaner implements EvaluationPhase<Evaluator> {
+public class OutputCleaner extends Evaluator {
 
     @Override
-    public void run(Evaluator evaluator) throws IOException {
-        Files.deleteIfExists(evaluator.outputRootPath.resolve(".current"));
+    public void runEvaluation() throws Exception {
+        Files.deleteIfExists(outputRootPath.resolve(".current"));
         FeatJAR.log().info("Reset current output path.");
     }
-
-    @Override
-    public String getName() {
-        return "clean";
-    }
-
-    @Override
-    public void optionLoop(Evaluator evaluator, int lastOptionChanged) {}
 }

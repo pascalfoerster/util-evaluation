@@ -58,7 +58,6 @@ public abstract class Evaluator implements ICommand {
             .setDefaultValue(Path.of("resources"))
             .setValidator(Option.PathValidator);
 
-    public static final ListOption<String> phases = new ListOption<>("phases", Option.StringParser);
     public static final Option<Long> timeout = new Option<>("timeout", Option.LongParser, Long.MAX_VALUE);
     public static final Option<Long> randomSeed = new Option<>("seed", Option.LongParser);
 
@@ -79,7 +78,6 @@ public abstract class Evaluator implements ICommand {
                 OUTPUT_OPTION,
                 modelsPathOption,
                 resourcesPathOption,
-                phases,
                 timeout,
                 randomSeed,
                 systemsOption,
@@ -95,8 +93,8 @@ public abstract class Evaluator implements ICommand {
         return optionParser.get(option).orElseThrow();
     }
 
-    @SuppressWarnings("unchecked")
-    public <T extends Evaluator> void optionLoop(EvaluationPhase<T> phase, AListOption<?>... loptions) {
+    protected final <T extends Evaluator> void loopOverOptions(
+            Consumer<Integer> forEachOption, AListOption<?>... loptions) {
         this.loptions = loptions;
         optionIndicesList = new ArrayList<>();
         optionSizes = new int[loptions.length];
@@ -135,7 +133,7 @@ public abstract class Evaluator implements ICommand {
             statusMessage.append("/");
             statusMessage.append(optionIndicesList.size());
             FeatJAR.log().info(statusMessage.toString());
-            phase.optionLoop((T) this, o[o.length - 1]);
+            forEachOption.accept(o[o.length - 1]);
         }
     }
 
@@ -248,45 +246,33 @@ public abstract class Evaluator implements ICommand {
         return currentOutputMarker;
     }
 
+    protected abstract void runEvaluation() throws Exception;
+
     @Override
     public void run(OptionList optionParser) {
         this.optionParser = optionParser;
         try {
             init();
-            phaseLoop:
-            for (String phase : optionParser.get(phases).get()) {
-                for (EvaluationPhase<?> phaseExtension :
-                        EvaluationPhaseExtensionPoint.getInstance().getExtensions()) {
-                    if (phaseExtension.getIdentifier().equals(phase)) {
-                        runPhase(phaseExtension);
-                        continue phaseLoop;
-                    }
-                }
-                FeatJAR.log().error("Phase \"" + phase + "\" not found.");
+
+            updateSubPaths();
+
+            FeatJAR.log().info("Running " + getIdentifier());
+            Properties properties = new Properties();
+            for (final Option<?> opt : getOptions()) {
+                String name = opt.getName();
+                String value = String.valueOf(optionParser.get(opt).orElse(null));
+                String isDefaultValue = optionParser.has(opt) ? "" : " (default)";
+                properties.put(name, value);
+                FeatJAR.log().info("%s: %s%s", name, value, isDefaultValue);
             }
+            properties.store(Files.newOutputStream(csvPath.resolve("config.properties")), null);
+
+            runEvaluation();
         } catch (final Exception e) {
             FeatJAR.log().error(e);
         } finally {
             dispose();
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T extends Evaluator> void runPhase(EvaluationPhase<T> phaseExtension) throws IOException, Exception {
-        updateSubPaths();
-
-        FeatJAR.log().info("Running " + phaseExtension.getName());
-        Properties properties = new Properties();
-        for (final Option<?> opt : getOptions()) {
-            String name = opt.getName();
-            String value = String.valueOf(optionParser.get(opt).orElse(null));
-            String isDefaultValue = optionParser.has(opt) ? "" : " (default)";
-            properties.put(name, value);
-            FeatJAR.log().info("%s: %s%s", name, value, isDefaultValue);
-        }
-        properties.store(Files.newOutputStream(csvPath.resolve("config.properties")), null);
-
-        phaseExtension.run((T) this);
     }
 
     public void init() throws Exception {
