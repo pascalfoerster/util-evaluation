@@ -21,7 +21,6 @@
 package de.featjar.evaluation;
 
 import de.featjar.base.FeatJAR;
-import de.featjar.base.cli.AListOption;
 import de.featjar.base.cli.ICommand;
 import de.featjar.base.cli.ListOption;
 import de.featjar.base.cli.Option;
@@ -36,8 +35,6 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import java.util.function.Consumer;
@@ -50,6 +47,13 @@ import java.util.stream.Collectors;
  * @author Sebastian Krieter
  */
 public abstract class Evaluator implements ICommand {
+
+    private static final String DATE_FORMAT_STRING = "yyyy-MM-dd_HH-mm-ss";
+    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT_STRING);
+
+    public String getTimeStamp() {
+        return DATE_FORMAT.format(new Timestamp(System.currentTimeMillis()));
+    }
 
     public static final Option<Path> modelsPathOption = new Option<>("models", Option.PathParser)
             .setDefaultValue(Path.of("models"))
@@ -66,10 +70,17 @@ public abstract class Evaluator implements ICommand {
     public static final RangeOption algorithmIterationsOption = new RangeOption("algorithmIterations");
 
     public OptionList optionParser;
-    private AListOption<?>[] loptions;
-    public ArrayList<int[]> optionIndicesList;
-    public int[] optionIndices;
-    public int[] optionSizes;
+    public OptionCombiner optionCombiner;
+
+    public Path outputPath;
+    public Path outputRootPath;
+    public Path modelPath;
+    public Path resourcePath;
+    public Path csvPath;
+    public Path genPath;
+    public Path tempPath;
+    public List<String> systemNames;
+    public List<Integer> systemIDs;
 
     @Override
     public List<Option<?>> getOptions() {
@@ -91,125 +102,6 @@ public abstract class Evaluator implements ICommand {
 
     public <T> T getOption(Option<T> option) {
         return optionParser.get(option).orElseThrow();
-    }
-
-    protected final <T extends Evaluator> void loopOverOptions(
-            Consumer<Integer> forEachOption, AListOption<?>... loptions) {
-        this.loptions = loptions;
-        optionIndicesList = new ArrayList<>();
-        optionSizes = new int[loptions.length];
-        for (int i = 0; i < loptions.length; i++) {
-            optionSizes[i] = optionParser.get(loptions[i]).orElseThrow().size();
-        }
-        int[] values = new int[loptions.length + 1];
-        Arrays.fill(values, -1);
-
-        cross(0, values, 0);
-
-        FeatJAR.log().info("Start");
-        StringBuilder optionMessage = new StringBuilder();
-        for (int i = 0; i < optionSizes.length; i++) {
-            int max = optionSizes[i];
-            if (max > 1) {
-                optionMessage.append(loptions[i].getName());
-                optionMessage.append(" ");
-            }
-        }
-        FeatJAR.log().info(optionMessage.toString());
-        int optionIndicesIndex = 0;
-        for (int[] o : optionIndicesList) {
-            optionIndices = o;
-            StringBuilder statusMessage = new StringBuilder();
-            for (int i = 0; i < optionSizes.length; i++) {
-                int max = optionSizes[i];
-                if (max > 1) {
-                    statusMessage.append(optionIndices[i] + 1);
-                    statusMessage.append("/");
-                    statusMessage.append(max);
-                    statusMessage.append(" | ");
-                }
-            }
-            statusMessage.append(++optionIndicesIndex);
-            statusMessage.append("/");
-            statusMessage.append(optionIndicesList.size());
-            FeatJAR.log().info(statusMessage.toString());
-            forEachOption.accept(o[o.length - 1]);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public <T> T cast(int index) {
-        int optionIndex = optionIndices[index];
-        return optionIndex < 0
-                ? null
-                : (T) optionParser.get(loptions[index]).orElseThrow().get(optionIndex);
-    }
-
-    public void run(Consumer<int[]> runner) {
-        FeatJAR.log().info("Start");
-        StringBuilder optionMessage = new StringBuilder();
-        for (int i = 0; i < optionSizes.length; i++) {
-            int max = optionSizes[i];
-            if (max > 0) {
-                optionMessage.append(loptions[i].getName());
-                optionMessage.append(" ");
-            }
-            FeatJAR.log().info(optionMessage.toString());
-        }
-        FeatJAR.log().info(loptions);
-        int optionIndicesIndex = 0;
-        for (int[] o : optionIndicesList) {
-            optionIndices = o;
-            StringBuilder statusMessage = new StringBuilder();
-            for (int i = 0; i < optionSizes.length; i++) {
-                int max = optionSizes[i];
-                if (max > 0) {
-                    statusMessage.append(optionIndices[i]);
-                    statusMessage.append("/");
-                    statusMessage.append(max);
-                    statusMessage.append(" | ");
-                }
-                statusMessage.append(++optionIndicesIndex);
-                statusMessage.append("/");
-                statusMessage.append(optionIndicesList.size());
-                FeatJAR.log().info(statusMessage.toString());
-            }
-            runner.accept(o);
-        }
-    }
-
-    private void cross(int optionIndex, int[] values, int lastChange) {
-        if (optionIndex > values.length - 2) {
-            values[values.length - 1] = lastChange;
-            optionIndicesList.add(Arrays.copyOf(values, values.length));
-        } else {
-            int size = optionSizes[optionIndex];
-            if (size > 0) {
-                values[optionIndex] = 0;
-                cross(optionIndex + 1, values, lastChange);
-                for (int i = 1; i < size; i++) {
-                    values[optionIndex] = i;
-                    cross(optionIndex + 1, values, optionIndex);
-                }
-            }
-        }
-    }
-
-    private static final String DATE_FORMAT_STRING = "yyyy-MM-dd_HH-mm-ss";
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat(DATE_FORMAT_STRING);
-
-    public Path outputPath;
-    public Path outputRootPath;
-    public Path modelPath;
-    public Path resourcePath;
-    public Path csvPath;
-    public Path genPath;
-    public Path tempPath;
-    public List<String> systemNames;
-    public List<Integer> systemIDs;
-
-    public String getTimeStamp() {
-        return DATE_FORMAT.format(new Timestamp(System.currentTimeMillis()));
     }
 
     public String readCurrentOutputMarker() {
@@ -251,6 +143,7 @@ public abstract class Evaluator implements ICommand {
     @Override
     public void run(OptionList optionParser) {
         this.optionParser = optionParser;
+        this.optionCombiner = new OptionCombiner(optionParser);
         try {
             init();
 
