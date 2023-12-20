@@ -18,7 +18,7 @@
  *
  * See <https://github.com/FeatJAR> for further information.
  */
-package de.featjar.evaluation;
+package de.featjar.evaluation.util;
 
 import java.util.Iterator;
 

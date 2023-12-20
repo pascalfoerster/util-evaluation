@@ -27,6 +27,7 @@ import de.featjar.base.cli.Option;
 import de.featjar.base.cli.OptionList;
 import de.featjar.base.cli.RangeOption;
 import de.featjar.base.io.csv.CSVFile;
+import de.featjar.evaluation.util.OptionCombiner;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
