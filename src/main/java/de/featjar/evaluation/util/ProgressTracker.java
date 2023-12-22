@@ -47,6 +47,7 @@ public class ProgressTracker implements Iterator<int[]> {
             indices[i] = size - 1;
             totalSize *= size;
         }
+        assert totalSize >= 1;
     }
 
     public String nextAndPrint() {
@@ -77,7 +78,7 @@ public class ProgressTracker implements Iterator<int[]> {
 
     @Override
     public boolean hasNext() {
-        return totalIndex <= totalSize - 1;
+        return totalIndex < totalSize - 1;
     }
 
     @Override
@@ -97,6 +98,8 @@ public class ProgressTracker implements Iterator<int[]> {
             }
         }
         totalIndex++;
+        assert totalIndex >= 0;
+        assert totalIndex < totalSize;
         lastIndexChanged = i + 1;
         return indices;
     }

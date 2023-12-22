@@ -54,11 +54,8 @@ public class OptionCombiner {
         StringBuilder optionMessage = new StringBuilder();
         int[] sizes = progress.getSizes();
         for (int i = 0; i < sizes.length; i++) {
-            int max = sizes[i];
-            if (max > 1) {
-                optionMessage.append(loptions[i].getName());
-                optionMessage.append(" ");
-            }
+            optionMessage.append(loptions[i].getName());
+            optionMessage.append(String.format("(%d) ", sizes[i]));
         }
         return optionMessage.toString();
     }
