@@ -38,7 +38,6 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Properties;
-import java.util.function.Consumer;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -242,17 +241,6 @@ public abstract class Evaluator implements ICommand {
             } catch (final IOException e) {
                 e.printStackTrace();
             }
-        }
-    }
-
-    public final void writeCSV(CSVFile writer, Consumer<CSVFile> writing) {
-        writer.newLine();
-        try {
-            writing.accept(writer);
-            writer.flush();
-        } catch (Exception e) {
-            FeatJAR.log().error(e);
-            writer.removeLastLine();
         }
     }
 
