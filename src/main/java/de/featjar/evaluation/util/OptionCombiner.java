@@ -65,7 +65,7 @@ public class OptionCombiner {
         int optionIndex = progress.getIndices()[index];
         return optionIndex < 0
                 ? null
-                : (T) optionParser.get(options[index]).orElseThrow().get(optionIndex);
+                : (T) optionParser.getResult(options[index]).orElseThrow().get(optionIndex);
     }
 
     public OptionCombiner(OptionList parser) {
@@ -77,7 +77,7 @@ public class OptionCombiner {
 
         int[] sizes = new int[options.length];
         for (int i = 0; i < options.length; i++) {
-            int size = optionParser.get(options[i]).orElseThrow().size();
+            int size = optionParser.getResult(options[i]).orElseThrow().size();
             if (size <= 0) {
                 throw new IllegalArgumentException(
                         String.format("Option list must not be empty. Option: %s", options[i].getName()));

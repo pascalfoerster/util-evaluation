@@ -101,7 +101,7 @@ public abstract class Evaluator implements ICommand {
     }
 
     public <T> T getOption(Option<T> option) {
-        return optionParser.get(option).orElseThrow();
+        return optionParser.getResult(option).orElseThrow();
     }
 
     public String readCurrentOutputMarker() {
@@ -153,7 +153,7 @@ public abstract class Evaluator implements ICommand {
             Properties properties = new Properties();
             for (final Option<?> opt : getOptions()) {
                 String name = opt.getName();
-                String value = String.valueOf(optionParser.get(opt).orElse(null));
+                String value = String.valueOf(optionParser.getResult(opt).orElse(null));
                 String isDefaultValue = optionParser.has(opt) ? "" : " (default)";
                 properties.put(name, value);
                 FeatJAR.log().info("%s: %s%s", name, value, isDefaultValue);
@@ -169,9 +169,9 @@ public abstract class Evaluator implements ICommand {
     }
 
     public void init() throws Exception {
-        outputRootPath = optionParser.get(OUTPUT_OPTION).get();
-        resourcePath = optionParser.get(resourcesPathOption).get();
-        modelPath = optionParser.get(modelsPathOption).get();
+        outputRootPath = optionParser.getResult(OUTPUT_OPTION).get();
+        resourcePath = optionParser.getResult(resourcesPathOption).get();
+        modelPath = optionParser.getResult(modelsPathOption).get();
         systemNames = Files.list(modelPath)
                 .map(p -> p.getFileName().toString())
                 .sorted()
