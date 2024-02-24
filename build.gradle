@@ -8,7 +8,6 @@ dependencies {
 
 license {
     ext {
-        author = 'Sebastian Krieter'
-        url = 'https://github.com/FeatureIDE/FeatJAR-evaluation'
+        licence_url = 'https://github.com/FeatureIDE/FeatJAR-evaluation'
     }
 }
