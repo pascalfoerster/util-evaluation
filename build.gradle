@@ -1,9 +1,11 @@
 plugins {
     id 'de.featjar.java-library'
+    id 'de.featjar.java-application'
 }
 
 dependencies {
-    api 'de.featjar:base'
+    api 'de.featjar:formula-analysis-sat4j'
+    api 'org.ow2.sat4j:org.ow2.sat4j.core:2.3.6'
 }
 
 license {

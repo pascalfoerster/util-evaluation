@@ -1,5 +1,7 @@
 <extensions>
 	<point id="de.featjar.base.cli.Commands">
 		<extension id="de.featjar.evaluation.OutputCleaner" />
+		<extension id="de.featjar.evaluation.IndeterminateEvaluation" />
+		<extension id="de.featjar.evaluation.IndeterminatePreprocessEvaluation" />
 	</point>
 </extensions>

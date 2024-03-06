@@ -5,3 +5,8 @@
 /.idea/
 /.settings/
 /bin/
+/src/main/resources/in
+/src/main/resources/out
+/src/main/resources/tmp
+eval.sh
+evalPre.sh
