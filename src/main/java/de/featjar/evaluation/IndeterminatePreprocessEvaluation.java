@@ -30,28 +30,27 @@ import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class IndeterminatePreprocessEvaluation extends Evaluator {
-    private long timeoutV ;
-    private  HashMap< String, Pair< IFormula, Pair<List<String>,List< BiImplies >>>> models = new HashMap<>();
+    private long timeoutV;
+    private HashMap<String, Pair<IFormula, Pair<List<String>, List<BiImplies>>>> models = new HashMap<>();
 
     @Override
     public void init() throws Exception {
         super.init();
         timeoutV = optionParser.getResult(timeout).get();
-        for(String modelName : systemNames) {
+        for (String modelName : systemNames) {
             ModelReader<Pair<IFormula, Pair<List<String>, List<BiImplies>>>> modelReader = new ModelReader<>(modelPath.resolve(modelName), HiddenFormulaFormats.getInstance());
             models.put(modelName, modelReader.loadFile(modelReader.getPathToFiles()).get());
         }
     }
 
 
-
     @Override
     protected void runEvaluation() throws Exception {
-        CSVFile csvFile = this.addCSVWriter("data", "id","count", "IA", "pre1-IA","pre1DC-IA", "pre2-IA", "pre3-IA", "pre4-IA", "pre5-IA", "imp-IA");
+        CSVFile csvFile = this.addCSVWriter("data", "id", "count", "IA", "pre1-IA", "pre1DC-IA", "pre2-IA", "pre3-IA", "pre4-IA", "pre5-IA", "imp-IA");
 
-        for(String modelName: models.keySet() ) {
-            FeatJAR.log().info("Running preprocess evaluation for "+modelName);
-            Pair< IFormula, Pair<List<String>,List< BiImplies >>> model = models.get(modelName);
+        for (String modelName : models.keySet()) {
+            FeatJAR.log().info("Running preprocess evaluation for " + modelName);
+            Pair<IFormula, Pair<List<String>, List<BiImplies>>> model = models.get(modelName);
             IComputation<IFormula> formula = Computations.of(model.getKey());
             ComputeBooleanRepresentation<IFormula, IBooleanRepresentation> cnf =
                     formula.map(ComputeNNFFormula::new)
@@ -65,73 +64,75 @@ public class IndeterminatePreprocessEvaluation extends Evaluator {
             List<Integer> indexes = optionParser.getResult(algorithmIterationsOption).get();
             BooleanAssignment deadCore = new ComputeCoreSAT4J(clauses).compute();
             int formulaSize = formula.getChildrenCount();
-            int hiddenVariablesSize  = hiddenVariables.size();
-                // initialize data
-                assert formulaSize == formula.getChildrenCount();
-                assert hiddenVariablesSize == hiddenVariables.size();
-                // initialise complete indeterminate analysis
-                ComputeIndeterminate normalIndeterminate = new ComputeIndeterminate(clauses);
-                //initalize core Dead  Analyse
-                ComputeCoreSAT4J computeCoreSAT4J = new ComputeCoreSAT4J(clauses);
-                // initialise pre process
-                PreprocessIff preprocessIff = new PreprocessIff(formula);
-                PreprocessIff preprocessIff1 = new PreprocessIff(formula);
-                preprocessIff1.set(PreprocessIff.CORE_DEAD_FEATURE, deadCore);
-                PreprocessIffV2 preprocessIffV2 = new PreprocessIffV2(formula);
-                PreprocessIffSort preprocessIffSort = new PreprocessIffSort(formula);
-                PreprocessIffComp preprocessIffComp = new PreprocessIffComp(formula);
-                PreprocessIffCompSort preprocessIffCompSort = new PreprocessIffCompSort(formula);
-                PreprocessImGraph preprocessImGraph = new PreprocessImGraph(Computations.of(modalImplicationGraph));
-                List<Result<BooleanAssignment>> result = new ArrayList<>();
-                result.add(compute(new Analysis(normalIndeterminate, hiddenVariables)));
-                result.add(compute(new Analysis(preprocessIff, variableMap, normalIndeterminate, hiddenVariables)));
-                result.add(compute(new Analysis(preprocessIff1, variableMap, normalIndeterminate, hiddenVariables)));
-                result.add(compute(new Analysis(preprocessIffV2, variableMap, normalIndeterminate, hiddenVariables)));
-                result.add(compute(new Analysis(preprocessIffSort, variableMap, normalIndeterminate, hiddenVariables)));
-                result.add(compute(new Analysis(preprocessIffComp, variableMap, normalIndeterminate, hiddenVariables)));
-                result.add(compute(new Analysis(preprocessIffCompSort, variableMap, normalIndeterminate, hiddenVariables)));
-                result.add(compute(new Analysis(preprocessImGraph, variableMap, normalIndeterminate, hiddenVariables)));
-                List<String> outputLine = result.stream().map(e -> e.getResult().size() + "").collect(Collectors.toList());
-                outputLine.add(0,modelName);
-                outputLine.add(1,hiddenVariablesSize+"");
-                csvFile.addLine(outputLine);
-                FeatJAR.log().info("");
+            int hiddenVariablesSize = hiddenVariables.size();
+            // initialize data
+            assert formulaSize == formula.getChildrenCount();
+            assert hiddenVariablesSize == hiddenVariables.size();
+            // initialise complete indeterminate analysis
+            ComputeIndeterminate normalIndeterminate = new ComputeIndeterminate(clauses);
+            //initalize core Dead  Analyse
+            ComputeCoreSAT4J computeCoreSAT4J = new ComputeCoreSAT4J(clauses);
+            // initialise pre process
+            PreprocessIff preprocessIff = new PreprocessIff(formula);
+            PreprocessIff preprocessIff1 = new PreprocessIff(formula);
+            preprocessIff1.set(PreprocessIff.CORE_DEAD_FEATURE, deadCore);
+            PreprocessIffV2 preprocessIffV2 = new PreprocessIffV2(formula);
+            PreprocessIffSort preprocessIffSort = new PreprocessIffSort(formula);
+            PreprocessIffComp preprocessIffComp = new PreprocessIffComp(formula);
+            PreprocessIffCompSort preprocessIffCompSort = new PreprocessIffCompSort(formula);
+            PreprocessImGraph preprocessImGraph = new PreprocessImGraph(Computations.of(modalImplicationGraph));
+            List<Result<BooleanAssignment>> result = new ArrayList<>();
+            result.add(compute(new Analysis(normalIndeterminate, hiddenVariables)));
+            result.add(compute(new Analysis(preprocessIff, variableMap, normalIndeterminate, hiddenVariables)));
+            result.add(compute(new Analysis(preprocessIff1, variableMap, normalIndeterminate, hiddenVariables)));
+            result.add(compute(new Analysis(preprocessIffV2, variableMap, normalIndeterminate, hiddenVariables)));
+            result.add(compute(new Analysis(preprocessIffSort, variableMap, normalIndeterminate, hiddenVariables)));
+            result.add(compute(new Analysis(preprocessIffComp, variableMap, normalIndeterminate, hiddenVariables)));
+            result.add(compute(new Analysis(preprocessIffCompSort, variableMap, normalIndeterminate, hiddenVariables)));
+            result.add(compute(new Analysis(preprocessImGraph, variableMap, normalIndeterminate, hiddenVariables)));
+            List<String> outputLine = result.stream().map(e -> {
+                if (e.getTime() == Long.MAX_VALUE) return "Timeout";
+                return e.getResult().size() + "";
+            }).collect(Collectors.toList());
+            outputLine.add(0, modelName);
+            outputLine.add(1, hiddenVariablesSize + "");
+            csvFile.addLine(outputLine);
+            FeatJAR.log().info("");
 
             csvFile.flush();
-            FeatJAR.log().info("Finished evaluation for "+modelName);
+            FeatJAR.log().info("Finished evaluation for " + modelName);
         }
 
     }
 
 
-
-    private Result<BooleanAssignment> compute(Analysis analysis){
+    private Result<BooleanAssignment> compute(Analysis analysis) {
         Result<BooleanAssignment> result = new Result<>();
         long start, end = 0;
         start = System.nanoTime();
         ExecutorService executorService = Executors.newSingleThreadExecutor();
-        Future<BooleanAssignment> res =  executorService.submit(analysis);
+        Future<BooleanAssignment> res = executorService.submit(analysis);
         try {
-            BooleanAssignment assignment = res.get(timeoutV,TimeUnit.MINUTES);
+            BooleanAssignment assignment = res.get(timeoutV, TimeUnit.MINUTES);
             end = System.nanoTime();
             result.setResult(assignment);
-            result.setTime(end-start);
-            FeatJAR.log().info("Finished:"+analysis.info());
-        } catch ( TimeoutException e) {
+            result.setTime(end - start);
+            //    FeatJAR.log().info("Finished:"+analysis.info());
+        } catch (TimeoutException e) {
             res.cancel(true);
             result.setTime(Long.MAX_VALUE);
             result.setResult(null);
-            FeatJAR.log().info("Timeout: "+analysis.info());
-        }catch (InterruptedException| ExecutionException e ){
+            //   FeatJAR.log().info("Timeout: "+analysis.info());
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
-        } finally{
+        } finally {
             executorService.shutdownNow();
         }
 
         return result;
     }
 
-    private class Analysis implements Callable<BooleanAssignment>{
+    private class Analysis implements Callable<BooleanAssignment> {
         ASAT4JAnalysis.Solution<BooleanAssignment> indeterminate;
         ComputeIndeterminate indeterminateAnalyse;
         IndeterminatePreprocessFormula preprocessF;
@@ -143,56 +144,41 @@ public class IndeterminatePreprocessEvaluation extends Evaluator {
 
         ComputeCoreSAT4J coreDeadAnalysis;
 
-        public Analysis(ASAT4JAnalysis.Solution<BooleanAssignment> indeterminate, BooleanAssignment hiddenVariables){
+        public Analysis(ASAT4JAnalysis.Solution<BooleanAssignment> indeterminate, BooleanAssignment hiddenVariables) {
             this.indeterminate = indeterminate;
             this.hiddenVariables = hiddenVariables;
             type = 0;
         }
-        public Analysis(IndeterminatePreprocess preprocess, VariableMap variableMap, ComputeIndeterminate indeterminate, BooleanAssignment hiddenVariables){
+
+        public Analysis(IndeterminatePreprocess preprocess, VariableMap variableMap, ComputeIndeterminate indeterminate, BooleanAssignment hiddenVariables) {
             this.indeterminateAnalyse = indeterminate;
             this.hiddenVariables = hiddenVariables;
             this.preprocess = preprocess;
             map = variableMap;
             type = 1;
         }
-        public Analysis(ComputeBiImplicationFormula formula, VariableMap variableMap,  IndeterminatePreprocessFormula preprocess, ComputeIndeterminate indeterminate, BooleanAssignment hiddenVariables){
-            this.indeterminateAnalyse = indeterminate;
-            this.hiddenVariables = hiddenVariables;
-            this.preprocessF = preprocess;
-            map = variableMap;
-            this.formula = formula;
-            type = 2;
-        }
-        public Analysis(ComputeCoreSAT4J computeCoreSAT4J, IndeterminatePreprocess preprocess, VariableMap variableMap, ComputeIndeterminate indeterminate, BooleanAssignment hiddenVariables){
-            this.indeterminateAnalyse = indeterminate;
-            this.hiddenVariables = hiddenVariables;
-            this.preprocess = preprocess;
-            coreDeadAnalysis = computeCoreSAT4J;
-            map = variableMap;
-            type = 3;
-        }
+
 
         @Override
         public BooleanAssignment call() throws Exception {
-            if(type == 0){
+            if (type == 0) {
                 return indeterminate
                         .set(ComputeIndeterminate.VARIABLES_OF_INTEREST, hiddenVariables)
                         .compute();
-            }else {
-                return preprocess.set(IndeterminatePreprocess.VARIABLE_MAP,map)
-                                .set(IndeterminatePreprocess.VARIABLES_OF_INTEREST,hiddenVariables)
-                                .compute();
+            } else {
+                return preprocess.set(IndeterminatePreprocess.VARIABLE_MAP, map)
+                        .set(IndeterminatePreprocess.VARIABLES_OF_INTEREST, hiddenVariables)
+                        .compute();
             }
         }
 
-        private String info(){
-            switch (type){
+        private String info() {
+            switch (type) {
                 case 0:
-                    return " "+indeterminate;
-                case 1:
-                    return " "+preprocess+" => "+indeterminateAnalyse;
+                    return " " + indeterminate;
                 default:
-                    return " "+ formula+" => "+ preprocessF +" =>"+indeterminateAnalyse;
+                    return " " + preprocess + " => " + indeterminateAnalyse;
+
             }
         }
     }

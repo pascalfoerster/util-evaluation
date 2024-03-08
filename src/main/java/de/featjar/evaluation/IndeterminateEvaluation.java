@@ -51,7 +51,7 @@ public class IndeterminateEvaluation extends Evaluator {
         for(String modelName: models.keySet() ) {
             FeatJAR.log().info("Running evaluation for "+modelName);
             Pair< IFormula, Pair<List<String>,List< BiImplies >>> model = models.get(modelName);
-            CSVFile csvFile = this.addCSVWriter(modelName, "id", "IA", "IAS", "pre1-IA","pre1DCBe-IA","pre1DCDu-IA", "pre2-IA", "pre3-IA", "pre4-IA", "pre5-IA", "imp-IA", "update-pre1-IA","CorrectRes");
+            CSVFile csvFile = this.addCSVWriter(modelName, "id", "IA", "IAS", "pre1-IA","pre1DCBe-IA","pre1DCDu-IA", "pre2-IA", "pre3-IA", "pre4-IA", "pre5-IA", "impB-IA", "impA-IA", "update-pre1-IA","CorrectRes");
             IComputation<IFormula> formula = Computations.of(model.getKey());
             ComputeBooleanRepresentation<IFormula, IBooleanRepresentation> cnf =
                     formula.map(ComputeNNFFormula::new)
@@ -60,8 +60,9 @@ public class IndeterminateEvaluation extends Evaluator {
             IComputation<BooleanClauseList> clauses = cnf.map(Computations::getKey).cast(BooleanClauseList.class);
             VariableMap variableMap = cnf.map(Computations::getValue).compute();
             BooleanAssignment hiddenVariables = new BooleanAssignment(model.getValue().getKey().stream().mapToInt(x -> variableMap.get(x).get()).toArray());
-            ModalImplicationGraph modalImplicationGraph = clauses
-                    .map(MIGBuilder::new).compute();
+            MIGBuilder migBuilder=  clauses
+                    .map(MIGBuilder::new);
+            ModalImplicationGraph modalImplicationGraph = migBuilder.compute();
             List<Integer> indexes = optionParser.getResult(algorithmIterationsOption).get();
             BooleanAssignment deadCore = new ComputeCoreSAT4J(clauses).compute();
             int formulaSize = formula.getChildrenCount();
@@ -101,6 +102,7 @@ public class IndeterminateEvaluation extends Evaluator {
                 result.add(compute(new Analysis(preprocessIffComp, variableMap, normalIndeterminate, hiddenVariables)));
                 result.add(compute(new Analysis(preprocessIffCompSort, variableMap, normalIndeterminate, hiddenVariables)));
                 result.add(compute(new Analysis(preprocessImGraph, variableMap, normalIndeterminate, hiddenVariables)));
+                result.add(compute(new Analysis(migBuilder, normalIndeterminate, hiddenVariables)));
                 result.add(compute(new Analysis(biImplicationFormula, variableMap, preprocessIffSort, normalIndeterminate, hiddenVariables)));
                 int correct = result.size();
                 List<Integer> res =  result.get(0).getResult().streamValues().map(Pair::getKey).sorted().collect(Collectors.toList());
@@ -109,11 +111,11 @@ public class IndeterminateEvaluation extends Evaluator {
                         List<Integer> otherRes = result.get(j).getResult().streamValues().map(Pair::getKey).sorted().collect(Collectors.toList());
                         if (!otherRes.equals(res)) {
                             List<Integer> wrong = otherRes.stream().filter(x -> !res.contains(x)).collect(Collectors.toList());
-                            FeatJAR.log().debug(j + ": " + otherRes.size() + " " + res.size());
+                            FeatJAR.log().info(j + ": " + otherRes.size() + " " + res.size());
                             wrong.addAll(res.stream().filter(x -> !otherRes.contains(x)).collect(Collectors.toList()));
-                            FeatJAR.log().debug(j + ": " + wrong);
+                            FeatJAR.log().info(j + ": " + wrong);
                             List<String> wrongName = wrong.stream().map(x -> variableMap.get(x).get()).collect(Collectors.toList());
-                            FeatJAR.log().debug(j + ": " + wrongName);
+                            FeatJAR.log().info(j + ": " + wrongName);
                             correct--;
                         }
                     }
@@ -127,7 +129,7 @@ public class IndeterminateEvaluation extends Evaluator {
                 outputLine.add(correct+"");
 
                 csvFile.addLine(outputLine);
-                FeatJAR.log().info("");
+              //  FeatJAR.log().message("");
             }
             csvFile.flush();
             FeatJAR.log().info("Finished evaluation for "+modelName);
@@ -148,12 +150,12 @@ public class IndeterminateEvaluation extends Evaluator {
             end = System.nanoTime();
             result.setResult(assignment);
             result.setTime(end-start);
-            FeatJAR.log().info("Finished:"+analysis.info());
+      //      FeatJAR.log().message("Finished:"+analysis.info());
         } catch ( TimeoutException e) {
             res.cancel(true);
             result.setTime(Long.MAX_VALUE);
             result.setResult(null);
-            FeatJAR.log().info("Timeout: "+analysis.info());
+    //        FeatJAR.log().message("Timeout: "+analysis.info());
         }catch (InterruptedException| ExecutionException e ){
             e.printStackTrace();
         } finally{
@@ -168,12 +170,15 @@ public class IndeterminateEvaluation extends Evaluator {
         ComputeIndeterminate indeterminateAnalyse;
         IndeterminatePreprocessFormula preprocessF;
         IndeterminatePreprocess preprocess;
+        PreprocessImGraph preprocessImGraph;
         ComputeBiImplicationFormula formula;
         int type = 0;
         VariableMap map;
         BooleanAssignment hiddenVariables;
 
         ComputeCoreSAT4J coreDeadAnalysis;
+
+        MIGBuilder migBuilder;
 
         public Analysis(ASAT4JAnalysis.Solution<BooleanAssignment> indeterminate, BooleanAssignment hiddenVariables){
             this.indeterminate = indeterminate;
@@ -203,6 +208,12 @@ public class IndeterminateEvaluation extends Evaluator {
             map = variableMap;
             type = 3;
         }
+        public Analysis(MIGBuilder migBuilder, ComputeIndeterminate indeterminate, BooleanAssignment hiddenVariables){
+            this.indeterminateAnalyse = indeterminate;
+            this.hiddenVariables = hiddenVariables;
+            this.migBuilder = migBuilder;
+            type = 4;
+        }
 
         @Override
         public BooleanAssignment call() throws Exception {
@@ -225,12 +236,19 @@ public class IndeterminateEvaluation extends Evaluator {
                                 .set(IndeterminatePreprocess.VARIABLES_OF_INTEREST, hiddenVariables)
                                 .compute())
                         .compute();
-            }else{
+            }else if(type == 3){
                 return indeterminateAnalyse
                         .set(ComputeIndeterminate.VARIABLES_OF_INTEREST,preprocess
                                 .set(IndeterminatePreprocess.VARIABLE_MAP,map)
                                 .set(IndeterminatePreprocess.VARIABLES_OF_INTEREST,hiddenVariables)
                                 .set(IndeterminatePreprocess.CORE_DEAD_FEATURE,coreDeadAnalysis.compute())
+                                .compute())
+                        .compute();
+            }else {
+                preprocessImGraph = new PreprocessImGraph(Computations.of(migBuilder.compute()));
+                return indeterminateAnalyse
+                        .set(ComputeIndeterminate.VARIABLES_OF_INTEREST,preprocessImGraph
+                                .set(IndeterminatePreprocess.VARIABLES_OF_INTEREST,hiddenVariables)
                                 .compute())
                         .compute();
             }
@@ -242,8 +260,12 @@ public class IndeterminateEvaluation extends Evaluator {
                     return " "+indeterminate;
                 case 1:
                     return " "+preprocess+" => "+indeterminateAnalyse;
-                default:
+                case 2:
                     return " "+ formula+" => "+ preprocessF +" =>"+indeterminateAnalyse;
+                case 3:
+                    return " "+coreDeadAnalysis+" => " +preprocess+ " => "+ indeterminate;
+                default:
+                    return " "+migBuilder+" => "+preprocessImGraph+" => "+indeterminateAnalyse;
             }
         }
     }
