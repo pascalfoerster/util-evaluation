@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 
 public class IndeterminateEvaluation extends Evaluator {
     private long timeoutV ;
-    private  HashMap< String, Pair< IFormula, Pair<List<String>,List< BiImplies >>>> models = new HashMap<>();
+    private final HashMap< String, Pair< IFormula, Pair<List<String>,List< BiImplies >>>> models = new HashMap<>();
 
     @Override
     public void init() throws Exception {
@@ -96,7 +96,7 @@ public class IndeterminateEvaluation extends Evaluator {
                 result.add(compute(new Analysis(normalIndeterminateSlicing, hiddenVariables)));
                 result.add(compute(new Analysis(preprocessIff, variableMap, normalIndeterminate, hiddenVariables)));
                 result.add(compute(new Analysis(preprocessIff1, variableMap, normalIndeterminate, hiddenVariables)));
-                result.add(compute(new Analysis(computeCoreSAT4J,preprocessIff2, variableMap, normalIndeterminate, hiddenVariables)));
+                result.add(compute(new Analysis(computeCoreSAT4J, preprocessIff2, variableMap, normalIndeterminate, hiddenVariables)));
                 result.add(compute(new Analysis(preprocessIffV2, variableMap, normalIndeterminate, hiddenVariables)));
                 result.add(compute(new Analysis(preprocessIffSort, variableMap, normalIndeterminate, hiddenVariables)));
                 result.add(compute(new Analysis(preprocessIffComp, variableMap, normalIndeterminate, hiddenVariables)));
@@ -147,7 +147,7 @@ public class IndeterminateEvaluation extends Evaluator {
 
     private Result<BooleanAssignment> compute(Analysis analysis){
         Result<BooleanAssignment> result = new Result<>();
-        long start, end = 0;
+        long start, end;
         start = System.nanoTime();
         ExecutorService executorService = Executors.newSingleThreadExecutor();
         Future<BooleanAssignment> res =  executorService.submit(analysis);
@@ -171,14 +171,14 @@ public class IndeterminateEvaluation extends Evaluator {
         return result;
     }
 
-    private class Analysis implements Callable<BooleanAssignment>{
+    private static class Analysis implements Callable<BooleanAssignment>{
         ASAT4JAnalysis.Solution<BooleanAssignment> indeterminate;
         ComputeIndeterminate indeterminateAnalyse;
         IndeterminatePreprocessFormula preprocessF;
         IndeterminatePreprocess preprocess;
         PreprocessImGraph preprocessImGraph;
         ComputeBiImplicationFormula formula;
-        int type = 0;
+        int type;
         VariableMap map;
         BooleanAssignment hiddenVariables;
 
@@ -222,7 +222,7 @@ public class IndeterminateEvaluation extends Evaluator {
         }
 
         @Override
-        public BooleanAssignment call() throws Exception {
+        public BooleanAssignment call() {
             if(type == 0){
                 return indeterminate
                         .set(ComputeIndeterminate.VARIABLES_OF_INTEREST, hiddenVariables)
