@@ -105,18 +105,24 @@ public class IndeterminateEvaluation extends Evaluator {
                 result.add(compute(new Analysis(migBuilder, normalIndeterminate, hiddenVariables)));
                 result.add(compute(new Analysis(biImplicationFormula, variableMap, preprocessIffSort, normalIndeterminate, hiddenVariables)));
                 int correct = result.size();
-                List<Integer> res =  result.get(0).getResult().streamValues().map(Pair::getKey).sorted().collect(Collectors.toList());
-                for(int j = 1; j < result.size();j++ ) {
+                List<Integer> res = null;
+                for(int j = 0; j < result.size();j++ ) {
+
                     if(result.get(j).getResult() != null) {
-                        List<Integer> otherRes = result.get(j).getResult().streamValues().map(Pair::getKey).sorted().collect(Collectors.toList());
-                        if (!otherRes.equals(res)) {
-                            List<Integer> wrong = otherRes.stream().filter(x -> !res.contains(x)).collect(Collectors.toList());
-                            FeatJAR.log().info(j + ": " + otherRes.size() + " " + res.size());
-                            wrong.addAll(res.stream().filter(x -> !otherRes.contains(x)).collect(Collectors.toList()));
-                            FeatJAR.log().info(j + ": " + wrong);
-                            List<String> wrongName = wrong.stream().map(x -> variableMap.get(x).get()).collect(Collectors.toList());
-                            FeatJAR.log().info(j + ": " + wrongName);
-                            correct--;
+                        if( res == null) {
+                            res = result.get(j).getResult().streamValues().map(Pair::getKey).sorted().collect(Collectors.toList());
+                        }else {
+                            List<Integer> otherRes = result.get(j).getResult().streamValues().map(Pair::getKey).sorted().collect(Collectors.toList());
+                            if (!otherRes.equals(res)) {
+                                List<Integer> finalRes = res;
+                                List<Integer> wrong = otherRes.stream().filter(x -> !finalRes.contains(x)).collect(Collectors.toList());
+                                FeatJAR.log().info(j + ": " + otherRes.size() + " " + res.size());
+                                wrong.addAll(res.stream().filter(x -> !otherRes.contains(x)).collect(Collectors.toList()));
+                                FeatJAR.log().info(j + ": " + wrong);
+                                List<String> wrongName = wrong.stream().map(x -> variableMap.get(x).get()).collect(Collectors.toList());
+                                FeatJAR.log().info(j + ": " + wrongName);
+                                correct--;
+                            }
                         }
                     }
                 }
